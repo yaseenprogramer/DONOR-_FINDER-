@@ -14,21 +14,75 @@ def get_db_connection():
 
 def init_db():
   conn = get_db_connection()
-  # Ensures schema is always up to date without errors
+  # Clean reset to prevent schema misalignment on live servers
   conn.execute("DROP TABLE IF EXISTS donors")
   conn.execute("""
         CREATE TABLE donors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
+            role TEXT NOT NULL,
             blood TEXT NOT NULL,
             location TEXT NOT NULL,
             phone TEXT NOT NULL,
-            lat REAL,
-            lng REAL,
+            lat REAL NOT NULL,
+            lng REAL NOT NULL,
             last_donation TEXT NOT NULL,
             status TEXT DEFAULT 'Available'
         )
     """)
+  # Seed some initial realistic nodes for immediate map visualization
+  conn.executemany(
+      """
+        INSERT INTO donors (name, role, blood, location, phone, lat, lng, last_donation, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """,
+      [
+          (
+              "City General Hospital Blood Bank",
+              "Blood Bank",
+              "All",
+              "Chennai Central",
+              "9876543210",
+              13.0827,
+              80.2707,
+              "2026-01-01",
+              "Available",
+          ),
+          (
+              "Arun Kumar",
+              "Donor",
+              "O+",
+              "Anna Nagar",
+              "9123456789",
+              13.0878,
+              80.2084,
+              "2026-02-10",
+              "Available",
+          ),
+          (
+              "LifeCare RedCross Hub",
+              "Blood Bank",
+              "All",
+              "T. Nagar",
+              "9988776655",
+              13.0418,
+              80.2341,
+              "2026-01-01",
+              "Available",
+          ),
+          (
+              "Priya Ramesh",
+              "Donor",
+              "B+",
+              "Velachery",
+              "9711223344",
+              12.9716,
+              80.2211,
+              "2025-11-15",
+              "Available",
+          ),
+      ],
+  )
   conn.commit()
   conn.close()
 
@@ -42,18 +96,23 @@ def index():
 def search_donors():
   blood = request.args.get("blood", "").strip()
   location = request.args.get("location", "").strip()
+  role = request.args.get("role", "").strip()
 
   conn = get_db_connection()
   query = "SELECT * FROM donors WHERE 1=1"
   params = []
 
   if blood and blood != "All":
-    query += " AND blood = ?"
+    query += " AND (blood = ? OR blood = 'All')"
     params.append(blood)
 
   if location:
     query += " AND location LIKE ?"
     params.append(f"%{location}%")
+
+  if role and role != "All":
+    query += " AND role = ?"
+    params.append(role)
 
   donors = conn.execute(query, params).fetchall()
   conn.close()
@@ -65,8 +124,10 @@ def search_donors():
     try:
       last_date = datetime.strptime(d["last_donation"], "%Y-%m-%d")
       days_passed = (today - last_date).days
-      d["eligible"] = days_passed >= 90
-      d["days_remaining"] = max(0, 90 - days_passed)
+      d["eligible"] = days_passed >= 90 or d["role"] == "Blood Bank"
+      d["days_remaining"] = (
+          0 if d["role"] == "Blood Bank" else max(0, 90 - days_passed)
+      )
     except:
       d["eligible"] = True
       d["days_remaining"] = 0
@@ -79,10 +140,15 @@ def search_donors():
 def register_donor():
   data = request.json
   name = data.get("name")
+  role = data.get("role", "Donor")
   blood = data.get("blood")
   location = data.get("location")
   phone = data.get("phone")
-  last_donation = data.get("last_donation", datetime.today().strftime("%Y-%m-%d"))
+  lat = data.get("lat", 13.0827)
+  lng = data.get("lng", 80.2707)
+  last_donation = data.get(
+      "last_donation", datetime.today().strftime("%Y-%m-%d")
+  )
 
   if not all([name, blood, location, phone]):
     return jsonify({"error": "Missing required fields"}), 400
@@ -90,15 +156,15 @@ def register_donor():
   conn = get_db_connection()
   conn.execute(
       """
-        INSERT INTO donors (name, blood, location, phone, lat, lng, last_donation, status)
-        VALUES (?, ?, ?, ?, 13.1143, 80.1113, ?, 'Available')
+        INSERT INTO donors (name, role, blood, location, phone, lat, lng, last_donation, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Available')
     """,
-      (name, blood, location, phone, last_donation),
+      (name, role, blood, location, phone, lat, lng, last_donation),
   )
   conn.commit()
   conn.close()
 
-  return jsonify({"success": True, "message": "Donor registered successfully!"})
+  return jsonify({"success": True, "message": "Registered successfully!"})
 
 
 if __name__ == "__main__":

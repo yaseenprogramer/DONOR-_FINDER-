@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DonorFinder++ | Next-Gen Emergency Network</title>
+    <title>DonorFinder++ | Global Emergency Blood Network</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -15,64 +15,85 @@
             <span>DonorFinder<span>++</span></span>
         </div>
         <div class="live-badge">
-            <span class="pulse-dot"></span> Live Emergency Node
+            <span class="pulse-dot"></span> Live Radar Active
         </div>
         <nav>
-            <button id="btn-search" class="active" onclick="switchView('search')"><i class="ri-radar-line"></i> Live Radar</button>
+            <button id="btn-search" class="active" onclick="switchView('search')"><i class="ri-radar-line"></i> Live Map Radar</button>
             <button id="btn-register" onclick="switchView('register')"><i class="ri-user-shared-line"></i> Join Network</button>
         </nav>
     </header>
 
     <main>
-        <!-- SEARCH VIEW -->
+        <!-- SEARCH VIEW WITH INTERACTIVE MAP -->
         <section id="search-view" class="view">
             <div class="search-panel animate-fade">
                 <div class="panel-header">
                     <h2>Emergency Blood Radar</h2>
-                    <p>Real-time matching for critical care requirements.</p>
+                    <p>Real-time spatial matching for critical care nodes.</p>
                 </div>
                 <div class="filter-group">
                     <select id="blood-q" onchange="triggerSearch()">
-                        <option value="All"> All Blood Groups</option>
+                        <option value="All">⚡ All Blood Groups</option>
                         <option value="A+">A+</option> <option value="A-">A-</option>
                         <option value="B+">B+</option> <option value="B-">B-</option>
                         <option value="AB+">AB+</option> <option value="AB-">AB-</option>
                         <option value="O+">O+</option> <option value="O-">O-</option>
                     </select>
-                    <input type="text" id="loc-q" placeholder="🔍 Filter by city or area..." oninput="triggerSearch()">
+                    <select id="role-q" onchange="triggerSearch()">
+                        <option value="All">🏥 All Node Types (Donors & Banks)</option>
+                        <option value="Donor">Individual Volunteer Donors</option>
+                        <option value="Blood Bank">Verified Blood Banks & Hospitals</option>
+                    </select>
+                    <input type="text" id="loc-q" placeholder="🔍 Filter by area or hospital..." oninput="triggerSearch()">
                 </div>
                 <div id="donor-results" class="results-grid"></div>
             </div>
             <div id="map"></div>
         </section>
 
-        <!-- REGISTER & DIGITAL CARD VIEW -->
+        <!-- REGISTER & DIGITAL PASS VIEW -->
         <section id="register-view" class="view hidden">
             <div class="form-container animate-fade">
                 <div class="form-card glass-card">
-                    <h2>Node Registration</h2>
-                    <p>Register to generate your secure Digital Donor ID card.</p>
+                    <h2>Register Emergency Node</h2>
+                    <p>Auto-detects your location for instant map plotting.</p>
                     <form id="reg-form" onsubmit="submitDonor(event)">
-                        <input type="text" id="reg-name" placeholder="Full Name" required>
+                        <input type="text" id="reg-name" placeholder="Full Name / Hospital Name" required>
+                        <select id="reg-role" required>
+                            <option value="Donor">Individual Volunteer Donor</option>
+                            <option value="Blood Bank">Verified Blood Bank / Hospital</option>
+                        </select>
                         <select id="reg-blood" required>
-                            <option value="" disabled selected>Select Blood Group</option>
+                            <option value="" disabled selected>Select Blood Group / Managed Type</option>
+                            <option value="All">All Groups (Blood Bank Hub)</option>
                             <option value="A+">A+</option><option value="A-">A-</option>
                             <option value="B+">B+</option><option value="B-">B-</option>
                             <option value="AB+">AB+</option><option value="AB-">AB-</option>
                             <option value="O+">O+</option><option value="O-">O-</option>
                         </select>
-                        <input type="text" id="reg-location" placeholder="City / Area Location" required>
+                        <input type="text" id="reg-location" placeholder="City / Area Name" required>
                         <input type="tel" id="reg-phone" placeholder="WhatsApp Phone Number" required>
-                        <label class="date-label">Last Donation Date:</label>
-                        <input type="date" id="reg-date" required>
-                        <button type="submit" class="btn-glow">Generate Digital Pass & Register</button>
+                        
+                        <div class="gps-row">
+                            <button type="button" class="btn-gps" onclick="fetchGPS()"><i class="ri-gps-line"></i> Auto-Detect GPS Location</button>
+                            <span id="gps-status" class="gps-ok">GPS Ready</span>
+                        </div>
+                        <input type="hidden" id="reg-lat" value="13.0827">
+                        <input type="hidden" id="reg-lng" value="80.2707">
+
+                        <div id="donation-date-container">
+                            <label class="date-label">Last Donation Date (90-day cooldown tracker):</label>
+                            <input type="date" id="reg-date">
+                        </div>
+
+                        <button type="submit" class="btn-glow">Generate Digital Pass & Broadcast Node</button>
                     </form>
                 </div>
 
                 <!-- DIGITAL DONOR CARD PREVIEW -->
                 <div id="digital-card" class="donor-id-card hidden animate-slide">
                     <div class="card-header">
-                        <i class="ri-shield-check-fill"><span>VERIFIED NODE</span></i>
+                        <i class="ri-shield-check-fill"><span>SECURE VERIFIED NODE</span></i>
                         <span class="card-title">DONOR PASS++</span>
                     </div>
                     <div class="card-body">
@@ -84,7 +105,7 @@
                         </div>
                     </div>
                     <div class="card-footer">
-                        <div class="eligibility-status" id="card-eligibility">Status: Checking...</div>
+                        <div class="eligibility-status" id="card-eligibility">Status: Active</div>
                         <small>Secured by DonorFinder++ Protocol</small>
                     </div>
                 </div>
@@ -94,39 +115,69 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        let map = L.map('map', {zoomControl: false}).setView([13.1143, 80.1113], 12);
+        let map = L.map('map', {zoomControl: false}).setView([13.0827, 80.2707], 12);
+        L.control.position = 'bottomright';
         L.control.zoom({position: 'bottomright'}).addTo(map);
         
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '&copy; OpenStreetMap'
+            attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
         let markersLayer = L.layerGroup().addTo(map);
+        let userLat = 13.0827;
+        let userLng = 80.2707;
+
+        function fetchGPS() {
+            const status = document.getElementById('gps-status');
+            if (navigator.geolocation) {
+                status.innerText = 'Locating...';
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        userLat = position.coords.latitude;
+                        userLng = position.coords.longitude;
+                        document.getElementById('reg-lat').value = userLat;
+                        document.getElementById('reg-lng').value = userLng;
+                        status.innerText = '📍 GPS Locked Successfully!';
+                    },
+                    (error) => {
+                        status.innerText = '⚠️ Using default fallback location';
+                    }
+                );
+            } else {
+                status.innerText = 'Geolocation unsupported';
+            }
+        }
 
         function switchView(view) {
             document.getElementById('search-view').className = view === 'search' ? 'view' : 'view hidden';
             document.getElementById('register-view').className = view === 'register' ? 'view' : 'view hidden';
             document.getElementById('btn-search').classList.toggle('active', view === 'search');
             document.getElementById('btn-register').classList.toggle('active', view === 'register');
-            if(view === 'search') { setTimeout(() => map.invalidateSize(), 250); }
+            if(view === 'search') { 
+                setTimeout(() => {
+                    map.invalidateSize();
+                    triggerSearch();
+                }, 250); 
+            }
         }
 
         async function triggerSearch() {
             const b = document.getElementById('blood-q').value;
+            const r = document.getElementById('role-q').value;
             const l = document.getElementById('loc-q').value;
             const grid = document.getElementById('donor-results');
             
-            grid.innerHTML = '<div class="loader"><i class="ri-loader-4-line ri-spin"></i> Scanning live network...</div>';
+            grid.innerHTML = '<div class="loader"><i class="ri-loader-4-line ri-spin"></i> Scanning live geospatial grid...</div>';
 
-            const res = await fetch(`/api/search?blood=${encodeURIComponent(b)}&location=${encodeURIComponent(l)}`);
+            const res = await fetch(`/api/search?blood=${encodeURIComponent(b)}&role=${encodeURIComponent(r)}&location=${encodeURIComponent(l)}`);
             const donors = await res.json();
 
             markersLayer.clearLayers();
             grid.innerHTML = '';
 
             if (!donors.length) {
-                grid.innerHTML = '<div class="no-data"><i class="ri-alert-line"></i><p>No active donors found matching criteria.</p></div>';
+                grid.innerHTML = '<div class="no-data"><i class="ri-alert-line"></i><p>No emergency nodes found matching criteria.</p></div>';
                 return;
             }
 
@@ -134,22 +185,36 @@
                 const card = document.createElement('div');
                 card.className = `donor-card ${d.eligible ? 'eligible' : 'cooldown'}`;
                 card.innerHTML = `
-                    <div class="badge">${d.blood}</div>
+                    <div class="badge ${d.role === 'Blood Bank' ? 'badge-bank' : ''}">${d.blood}</div>
                     <div class="meta">
-                        <h3>${d.name}</h3>
+                        <h3>${d.name} <span class="role-tag">${d.role}</span></h3>
                         <p><i class="ri-map-pin-2-fill"></i> ${d.location}</p>
                         <small class="${d.eligible ? 'text-green' : 'text-orange'}">
-                            ${d.eligible ? '🟢 Ready to Donate' : `⏳ Cooldown (${d.days_remaining}d left)`}
+                            ${d.role === 'Blood Bank' ? '🏥 Verified Institution Hub' : (d.eligible ? '🟢 Ready to Donate' : `⏳ Cooldown (${d.days_remaining}d left)`)}
                         </small>
                     </div>
-                    <a href="https://wa.me/${d.phone}?text=EMERGENCY!%20Blood%20Group%20${d.blood}%20needed%20immediately!" target="_blank" class="wa-btn" title="Connect via WhatsApp">
+                    <a href="https://wa.me/${d.phone}?text=EMERGENCY!%20Blood%20Group%20${d.blood}%20needed%20urgently%20at%20location!" target="_blank" class="wa-btn" title="Instant WhatsApp Dispatch">
                         <i class="ri-whatsapp-line"></i>
                     </a>
                 `;
                 grid.appendChild(card);
 
                 if (d.lat && d.lng) {
-                    let marker = L.marker([d.lat, d.lng]).bindPopup(`<b>${d.name}</b><br>${d.blood} | ${d.location}`);
+                    let pinColor = d.role === 'Blood Bank' ? '#3b82f6' : '#ef4444';
+                    let customIcon = L.divIcon({
+                        className: 'custom-map-marker',
+                        html: `<div style="background-color: ${pinColor}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 10px ${pinColor};"></div>`,
+                        iconSize: [14, 14]
+                    });
+
+                    let marker = L.marker([d.lat, d.lng], {icon: customIcon}).bindPopup(`
+                        <div style="color: #000; font-family: Inter, sans-serif;">
+                            <b>${d.name}</b><br>
+                            <span style="font-weight:700; color:${pinColor}">${d.role} - ${d.blood}</span><br>
+                            📍 ${d.location}<br>
+                            <a href="https://wa.me/${d.phone}?text=Emergency%20blood%20dispatch!" target="_blank" style="color: #22c55e; font-weight:bold; text-decoration:none;">💬 Connect on WhatsApp</a>
+                        </div>
+                    `);
                     markersLayer.addLayer(marker);
                 }
             });
@@ -157,12 +222,16 @@
 
         async function submitDonor(e) {
             e.preventDefault();
+            const role = document.getElementById('reg-role').value;
             const data = {
                 name: document.getElementById('reg-name').value,
+                role: role,
                 blood: document.getElementById('reg-blood').value,
                 location: document.getElementById('reg-location').value,
                 phone: document.getElementById('reg-phone').value,
-                last_donation: document.getElementById('reg-date').value
+                lat: parseFloat(document.getElementById('reg-lat').value),
+                lng: parseFloat(document.getElementById('reg-lng').value),
+                last_donation: role === 'Blood Bank' ? '2026-01-01' : document.getElementById('reg-date').value
             };
 
             const res = await fetch('/api/register', {
@@ -177,22 +246,21 @@
                 document.getElementById('card-loc').innerText = data.location;
                 document.getElementById('card-phone').innerText = data.phone;
                 
-                const lastDate = new Date(data.last_donation);
-                const today = new Date();
-                const daysPassed = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
-                const eligible = daysPassed >= 90;
-
                 const eligibilityEl = document.getElementById('card-eligibility');
-                if (eligible) {
-                    eligibilityEl.innerHTML = 'Status: <span class="text-green">ELIGIBLE TO DONATE</span>';
+                if (data.role === 'Blood Bank') {
+                    eligibilityEl.innerHTML = 'Status: <span class="text-blue">VERIFIED INSTITUTIONAL NODE</span>';
                 } else {
-                    eligibilityEl.innerHTML = `Status: <span class="text-orange">COOLDOWN (${90 - daysPassed} days remaining)</span>`;
+                    const lastDate = new Date(data.last_donation);
+                    const today = new Date();
+                    const daysPassed = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+                    const eligible = daysPassed >= 90;
+                    eligibilityEl.innerHTML = eligible ? 'Status: <span class="text-green">ELIGIBLE TO DONATE</span>' : `Status: <span class="text-orange">COOLDOWN (${90 - daysPassed} days left)</span>`;
                 }
 
                 document.getElementById('digital-card').classList.remove('hidden');
-                triggerSearch();
+                switchView('search');
             } else {
-                alert('Registration failed.');
+                alert('Registration failed. Please check inputs.');
             }
         }
 
@@ -201,6 +269,11 @@
             const dateInput = document.getElementById('reg-date');
             dateInput.max = todayStr;
             dateInput.value = todayStr;
+            
+            document.getElementById('reg-role').addEventListener('change', (e) => {
+                document.getElementById('donation-date-container').style.display = e.target.value === 'Blood Bank' ? 'none' : 'block';
+            });
+
             triggerSearch();
         };
     </script>

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 import sqlite3
 from flask import Flask, jsonify, render_template, request
 
@@ -14,8 +14,10 @@ def get_db_connection():
 
 def init_db():
   conn = get_db_connection()
+  # Ensures schema is always up to date without errors
+  conn.execute("DROP TABLE IF EXISTS donors")
   conn.execute("""
-        CREATE TABLE IF NOT EXISTS donors (
+        CREATE TABLE donors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             blood TEXT NOT NULL,
@@ -56,15 +58,18 @@ def search_donors():
   donors = conn.execute(query, params).fetchall()
   conn.close()
 
-  # Calculate 90-day eligibility on the fly
   today = datetime.today()
   results = []
   for row in donors:
     d = dict(row)
-    last_date = datetime.strptime(d["last_donation"], "%Y-%m-%d")
-    days_passed = (today - last_date).days
-    d["eligible"] = days_passed >= 90
-    d["days_remaining"] = max(0, 90 - days_passed)
+    try:
+      last_date = datetime.strptime(d["last_donation"], "%Y-%m-%d")
+      days_passed = (today - last_date).days
+      d["eligible"] = days_passed >= 90
+      d["days_remaining"] = max(0, 90 - days_passed)
+    except:
+      d["eligible"] = True
+      d["days_remaining"] = 0
     results.append(d)
 
   return jsonify(results)

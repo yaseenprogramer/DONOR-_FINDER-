@@ -67,4 +67,11 @@ main { flex: 1; display: flex; position: relative; overflow: hidden; }
 .card-details p { font-size: 0.8rem; color: #94a3b8; display: flex; align-items: center; gap: 4px; }
 .card-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 8px; font-size: 0.75rem; color: #64748b; }
 .eligibility-status { font-weight: 600; color: #fff; }
+
+/* ANIMATIONS */
+.animate-fade { animation: fadeIn 0.4s ease-in-out; }
+.animate-slide { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
 .loader, .no-data { text-align: center; color: #94a3b8; margin-top: 3rem; display: flex; flex-direction: column; align-items: center; gap: 8px; }

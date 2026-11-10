@@ -26,14 +26,14 @@
     <main>
         <!-- SEARCH VIEW -->
         <section id="search-view" class="view">
-            <div class="search-panel">
+            <div class="search-panel animate-fade">
                 <div class="panel-header">
                     <h2>Emergency Blood Radar</h2>
                     <p>Real-time matching for critical care requirements.</p>
                 </div>
                 <div class="filter-group">
                     <select id="blood-q" onchange="triggerSearch()">
-                        <option value="All">⚡ All Blood Groups</option>
+                        <option value="All"> All Blood Groups</option>
                         <option value="A+">A+</option> <option value="A-">A-</option>
                         <option value="B+">B+</option> <option value="B-">B-</option>
                         <option value="AB+">AB+</option> <option value="AB-">AB-</option>
@@ -48,7 +48,7 @@
 
         <!-- REGISTER & DIGITAL CARD VIEW -->
         <section id="register-view" class="view hidden">
-            <div class="form-container">
+            <div class="form-container animate-fade">
                 <div class="form-card glass-card">
                     <h2>Node Registration</h2>
                     <p>Register to generate your secure Digital Donor ID card.</p>
@@ -65,12 +65,12 @@
                         <input type="tel" id="reg-phone" placeholder="WhatsApp Phone Number" required>
                         <label class="date-label">Last Donation Date:</label>
                         <input type="date" id="reg-date" required>
-                        <button type="submit" class="btn-glow">Generate Digital Card & Register</button>
+                        <button type="submit" class="btn-glow">Generate Digital Pass & Register</button>
                     </form>
                 </div>
 
                 <!-- DIGITAL DONOR CARD PREVIEW -->
-                <div id="digital-card" class="donor-id-card hidden">
+                <div id="digital-card" class="donor-id-card hidden animate-slide">
                     <div class="card-header">
                         <i class="ri-shield-check-fill"><span>VERIFIED NODE</span></i>
                         <span class="card-title">DONOR PASS++</span>
@@ -142,7 +142,7 @@
                             ${d.eligible ? '🟢 Ready to Donate' : `⏳ Cooldown (${d.days_remaining}d left)`}
                         </small>
                     </div>
-                    <a href="https://wa.me/${d.phone}?text=EMERGENCY!%20Blood%20Group%20${d.blood}%20needed%20immediately!" target="_blank" class="wa-btn">
+                    <a href="https://wa.me/${d.phone}?text=EMERGENCY!%20Blood%20Group%20${d.blood}%20needed%20immediately!" target="_blank" class="wa-btn" title="Connect via WhatsApp">
                         <i class="ri-whatsapp-line"></i>
                     </a>
                 `;
@@ -172,7 +172,6 @@
             });
 
             if (res.ok) {
-                // Populate Digital ID Card
                 document.getElementById('card-name').innerText = data.name;
                 document.getElementById('card-blood').innerText = data.blood;
                 document.getElementById('card-loc').innerText = data.location;
@@ -191,7 +190,6 @@
                 }
 
                 document.getElementById('digital-card').classList.remove('hidden');
-                alert('Registration successful! Your Digital Donor Pass has been generated.');
                 triggerSearch();
             } else {
                 alert('Registration failed.');
@@ -199,7 +197,10 @@
         }
 
         window.onload = () => {
-            document.getElementById('reg-date').valueAsDate = new Date();
+            const todayStr = new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById('reg-date');
+            dateInput.max = todayStr;
+            dateInput.value = todayStr;
             triggerSearch();
         };
     </script>

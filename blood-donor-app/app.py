@@ -1,4 +1,4 @@
-import os
+from datetime import datetime, timedelta
 import sqlite3
 from flask import Flask, jsonify, render_template, request
 
@@ -23,7 +23,8 @@ def init_db():
             phone TEXT NOT NULL,
             lat REAL,
             lng REAL,
-            last_donation TEXT
+            last_donation TEXT NOT NULL,
+            status TEXT DEFAULT 'Available'
         )
     """)
   conn.commit()
@@ -55,7 +56,18 @@ def search_donors():
   donors = conn.execute(query, params).fetchall()
   conn.close()
 
-  return jsonify([dict(row) for row in donors])
+  # Calculate 90-day eligibility on the fly
+  today = datetime.today()
+  results = []
+  for row in donors:
+    d = dict(row)
+    last_date = datetime.strptime(d["last_donation"], "%Y-%m-%d")
+    days_passed = (today - last_date).days
+    d["eligible"] = days_passed >= 90
+    d["days_remaining"] = max(0, 90 - days_passed)
+    results.append(d)
+
+  return jsonify(results)
 
 
 @app.route("/api/register", methods=["POST"])
@@ -65,9 +77,7 @@ def register_donor():
   blood = data.get("blood")
   location = data.get("location")
   phone = data.get("phone")
-  lat = data.get("lat")
-  lng = data.get("lng")
-  last_donation = data.get("last_donation", "Recently")
+  last_donation = data.get("last_donation", datetime.today().strftime("%Y-%m-%d"))
 
   if not all([name, blood, location, phone]):
     return jsonify({"error": "Missing required fields"}), 400
@@ -75,10 +85,10 @@ def register_donor():
   conn = get_db_connection()
   conn.execute(
       """
-        INSERT INTO donors (name, blood, location, phone, lat, lng, last_donation)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO donors (name, blood, location, phone, lat, lng, last_donation, status)
+        VALUES (?, ?, ?, ?, 13.1143, 80.1113, ?, 'Available')
     """,
-      (name, blood, location, phone, lat, lng, last_donation),
+      (name, blood, location, phone, last_donation),
   )
   conn.commit()
   conn.close()

@@ -3,20 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DonorFinder++ | Emergency Blood Network</title>
+    <title>DonorFinder++ | Next-Gen Emergency Network</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <header>
+    <header class="glass-nav">
         <div class="logo">
-            <i class="ri-heart-pulse-fill"></i>
+            <i class="ri-heart-pulse-fill neon-pulse"></i>
             <span>DonorFinder<span>++</span></span>
         </div>
+        <div class="live-badge">
+            <span class="pulse-dot"></span> Live Emergency Node
+        </div>
         <nav>
-            <button id="btn-search" class="active" onclick="switchView('search')"><i class="ri-search-line"></i> Find Donors</button>
-            <button id="btn-register" onclick="switchView('register')"><i class="ri-user-add-line"></i> Register as Donor</button>
+            <button id="btn-search" class="active" onclick="switchView('search')"><i class="ri-radar-line"></i> Live Radar</button>
+            <button id="btn-register" onclick="switchView('register')"><i class="ri-user-shared-line"></i> Join Network</button>
         </nav>
     </header>
 
@@ -24,60 +27,79 @@
         <!-- SEARCH VIEW -->
         <section id="search-view" class="view">
             <div class="search-panel">
-                <h2>Find Emergency Blood Donors</h2>
+                <div class="panel-header">
+                    <h2>Emergency Blood Radar</h2>
+                    <p>Real-time matching for critical care requirements.</p>
+                </div>
                 <div class="filter-group">
-                    <select id="blood-q">
-                        <option value="All">All Blood Groups</option>
-                        <option value="A+">A+</option>
-                        <option value="A-">A-</option>
-                        <option value="B+">B+</option>
-                        <option value="B-">B-</option>
-                        <option value="AB+">AB+</option>
-                        <option value="AB-">AB-</option>
-                        <option value="O+">O+</option>
-                        <option value="O-">O-</option>
+                    <select id="blood-q" onchange="triggerSearch()">
+                        <option value="All">⚡ All Blood Groups</option>
+                        <option value="A+">A+</option> <option value="A-">A-</option>
+                        <option value="B+">B+</option> <option value="B-">B-</option>
+                        <option value="AB+">AB+</option> <option value="AB-">AB-</option>
+                        <option value="O+">O+</option> <option value="O-">O-</option>
                     </select>
-                    <input type="text" id="loc-q" placeholder="Enter city or area...">
-                    <button onclick="triggerSearch()"><i class="ri-search-2-line"></i> Search</button>
+                    <input type="text" id="loc-q" placeholder="🔍 Filter by city or area..." oninput="triggerSearch()">
                 </div>
                 <div id="donor-results" class="results-grid"></div>
             </div>
             <div id="map"></div>
         </section>
 
-        <!-- REGISTER VIEW -->
+        <!-- REGISTER & DIGITAL CARD VIEW -->
         <section id="register-view" class="view hidden">
-            <div class="form-card">
-                <h2>Join the Donor Network</h2>
-                <form id="reg-form" onsubmit="submitDonor(event)">
-                    <input type="text" id="reg-name" placeholder="Full Name" required>
-                    <select id="reg-blood" required>
-                        <option value="" disabled selected>Select Blood Group</option>
-                        <option value="A+">A+</option>
-                        <option value="A-">A-</option>
-                        <option value="B+">B+</option>
-                        <option value="B-">B-</option>
-                        <option value="AB+">AB+</option>
-                        <option value="AB-">AB-</option>
-                        <option value="O+">O+</option>
-                        <option value="O-">O-</option>
-                    </select>
-                    <input type="text" id="reg-location" placeholder="City / Area Location" required>
-                    <input type="tel" id="reg-phone" placeholder="Phone Number" required>
-                    <input type="text" id="reg-lat" placeholder="Latitude (e.g., 13.1143)" value="13.1143">
-                    <input type="text" id="reg-lng" placeholder="Longitude (e.g., 80.1113)" value="80.1113">
-                    <button type="submit" class="btn-primary">Register Now</button>
-                </form>
+            <div class="form-container">
+                <div class="form-card glass-card">
+                    <h2>Node Registration</h2>
+                    <p>Register to generate your secure Digital Donor ID card.</p>
+                    <form id="reg-form" onsubmit="submitDonor(event)">
+                        <input type="text" id="reg-name" placeholder="Full Name" required>
+                        <select id="reg-blood" required>
+                            <option value="" disabled selected>Select Blood Group</option>
+                            <option value="A+">A+</option><option value="A-">A-</option>
+                            <option value="B+">B+</option><option value="B-">B-</option>
+                            <option value="AB+">AB+</option><option value="AB-">AB-</option>
+                            <option value="O+">O+</option><option value="O-">O-</option>
+                        </select>
+                        <input type="text" id="reg-location" placeholder="City / Area Location" required>
+                        <input type="tel" id="reg-phone" placeholder="WhatsApp Phone Number" required>
+                        <label class="date-label">Last Donation Date:</label>
+                        <input type="date" id="reg-date" required>
+                        <button type="submit" class="btn-glow">Generate Digital Card & Register</button>
+                    </form>
+                </div>
+
+                <!-- DIGITAL DONOR CARD PREVIEW -->
+                <div id="digital-card" class="donor-id-card hidden">
+                    <div class="card-header">
+                        <i class="ri-shield-check-fill"><span>VERIFIED NODE</span></i>
+                        <span class="card-title">DONOR PASS++</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="blood-badge-lg" id="card-blood">O+</div>
+                        <div class="card-details">
+                            <h3 id="card-name"></h3>
+                            <p><i class="ri-map-pin-2-fill"></i> <span id="card-loc"></span></p>
+                            <p><i class="ri-phone-fill"></i> <span id="card-phone"></span></p>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="eligibility-status" id="card-eligibility">Status: Checking...</div>
+                        <small>Secured by DonorFinder++ Protocol</small>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        let map = L.map('map').setView([13.1143, 80.1113], 11);
+        let map = L.map('map', {zoomControl: false}).setView([13.1143, 80.1113], 12);
+        L.control.zoom({position: 'bottomright'}).addTo(map);
+        
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors'
+            attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
         let markersLayer = L.layerGroup().addTo(map);
@@ -87,7 +109,7 @@
             document.getElementById('register-view').className = view === 'register' ? 'view' : 'view hidden';
             document.getElementById('btn-search').classList.toggle('active', view === 'search');
             document.getElementById('btn-register').classList.toggle('active', view === 'register');
-            if(view === 'search') { setTimeout(() => map.invalidateSize(), 200); }
+            if(view === 'search') { setTimeout(() => map.invalidateSize(), 250); }
         }
 
         async function triggerSearch() {
@@ -95,7 +117,7 @@
             const l = document.getElementById('loc-q').value;
             const grid = document.getElementById('donor-results');
             
-            grid.innerHTML = '<div class="loader"><i class="ri-loader-4-line ri-spin"></i> Searching donors...</div>';
+            grid.innerHTML = '<div class="loader"><i class="ri-loader-4-line ri-spin"></i> Scanning live network...</div>';
 
             const res = await fetch(`/api/search?blood=${encodeURIComponent(b)}&location=${encodeURIComponent(l)}`);
             const donors = await res.json();
@@ -104,28 +126,30 @@
             grid.innerHTML = '';
 
             if (!donors.length) {
-                grid.innerHTML = '<p class="no-data">No donors found matching criteria.</p>';
+                grid.innerHTML = '<div class="no-data"><i class="ri-alert-line"></i><p>No active donors found matching criteria.</p></div>';
                 return;
             }
 
             donors.forEach(d => {
                 const card = document.createElement('div');
-                card.className = 'donor-card';
+                card.className = `donor-card ${d.eligible ? 'eligible' : 'cooldown'}`;
                 card.innerHTML = `
                     <div class="badge">${d.blood}</div>
                     <div class="meta">
                         <h3>${d.name}</h3>
                         <p><i class="ri-map-pin-2-fill"></i> ${d.location}</p>
-                        <small>Status: ${d.last_donation}</small>
+                        <small class="${d.eligible ? 'text-green' : 'text-orange'}">
+                            ${d.eligible ? '🟢 Ready to Donate' : `⏳ Cooldown (${d.days_remaining}d left)`}
+                        </small>
                     </div>
-                    <a href="https://wa.me/${d.phone}?text=Emergency!%20Blood%20Group%20${d.blood}%20needed." target="_blank" class="wa-btn">
+                    <a href="https://wa.me/${d.phone}?text=EMERGENCY!%20Blood%20Group%20${d.blood}%20needed%20immediately!" target="_blank" class="wa-btn">
                         <i class="ri-whatsapp-line"></i>
                     </a>
                 `;
                 grid.appendChild(card);
 
                 if (d.lat && d.lng) {
-                    let marker = L.marker([d.lat, d.lng]).bindPopup(`<b>${d.name}</b><br>${d.blood} - ${d.location}`);
+                    let marker = L.marker([d.lat, d.lng]).bindPopup(`<b>${d.name}</b><br>${d.blood} | ${d.location}`);
                     markersLayer.addLayer(marker);
                 }
             });
@@ -138,8 +162,7 @@
                 blood: document.getElementById('reg-blood').value,
                 location: document.getElementById('reg-location').value,
                 phone: document.getElementById('reg-phone').value,
-                lat: parseFloat(document.getElementById('reg-lat').value) || 13.1143,
-                lng: parseFloat(document.getElementById('reg-lng').value) || 80.1113
+                last_donation: document.getElementById('reg-date').value
             };
 
             const res = await fetch('/api/register', {
@@ -149,16 +172,36 @@
             });
 
             if (res.ok) {
-                alert('Successfully registered as a donor!');
-                document.getElementById('reg-form').reset();
-                switchView('search');
+                // Populate Digital ID Card
+                document.getElementById('card-name').innerText = data.name;
+                document.getElementById('card-blood').innerText = data.blood;
+                document.getElementById('card-loc').innerText = data.location;
+                document.getElementById('card-phone').innerText = data.phone;
+                
+                const lastDate = new Date(data.last_donation);
+                const today = new Date();
+                const daysPassed = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
+                const eligible = daysPassed >= 90;
+
+                const eligibilityEl = document.getElementById('card-eligibility');
+                if (eligible) {
+                    eligibilityEl.innerHTML = 'Status: <span class="text-green">ELIGIBLE TO DONATE</span>';
+                } else {
+                    eligibilityEl.innerHTML = `Status: <span class="text-orange">COOLDOWN (${90 - daysPassed} days remaining)</span>`;
+                }
+
+                document.getElementById('digital-card').classList.remove('hidden');
+                alert('Registration successful! Your Digital Donor Pass has been generated.');
                 triggerSearch();
             } else {
-                alert('Registration failed. Please check inputs.');
+                alert('Registration failed.');
             }
         }
 
-        window.onload = triggerSearch;
+        window.onload = () => {
+            document.getElementById('reg-date').valueAsDate = new Date();
+            triggerSearch();
+        };
     </script>
 </body>
 </html>

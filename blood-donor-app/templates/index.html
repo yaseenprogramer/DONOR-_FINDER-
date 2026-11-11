@@ -42,8 +42,8 @@
             <section id="dashboard-view" class="view-panel">
                 <div class="welcome-banner glass-card animate-fade">
                     <div class="welcome-text">
-                        <h2>Welcome back, Lifeline 🩸</h2>
-                        <p>Advanced emergency blood management system ready for dispatch and rapid response.</p>
+                        <h2>Welcome back, Hero 🦸‍♂️🩸</h2>
+                        <p>"To the world you may be one person, but to one person you may be the world."</p>
                     </div>
                     <div class="status-pill">
                         <i class="ri-shield-check-fill"></i> ACTIVE OVERWATCH
@@ -81,7 +81,7 @@
                         <button class="btn-glow" onclick="switchView('search')">Launch Live Emergency Radar</button>
                     </div>
                     <div class="dash-box glass-card">
-                        <h3>Become a Donor Node</h3>
+                        <h3>Become a Donor</h3>
                         <p>Register your profile or blood bank to generate your verified secure Digital Donor Pass.</p>
                         <button class="btn-outline" onclick="switchView('register')">Register Now</button>
                     </div>
@@ -117,8 +117,8 @@
             <section id="register-view" class="view-panel hidden">
                 <div class="form-container animate-fade">
                     <div class="form-card glass-card">
-                        <h2>Node Registration</h2>
-                        <p>Auto-detects location for precise geospatial map routing.</p>
+                        <h2>Donor & Hospital Registration</h2>
+                        <p>Auto-detects location for precise map routing.</p>
                         <form id="reg-form" onsubmit="submitDonor(event)">
                             <input type="text" id="reg-name" placeholder="Full Name or Hospital Name" required>
                             <select id="reg-role" required>
@@ -148,7 +148,7 @@
                                 <input type="date" id="reg-date">
                             </div>
 
-                            <button type="submit" class="btn-glow">Generate Digital Pass & Join</button>
+                            <button type="submit" class="btn-glow">Generate Digital Pass & Register</button>
                         </form>
                     </div>
 
@@ -156,7 +156,7 @@
                     <div id="digital-card" class="donor-id-card hidden animate-slide">
                         <div class="card-ribbon">VERIFIED PASS</div>
                         <div class="card-header">
-                            <div class="card-brand"><i class="ri-shield-check-fill"><span>SECURED NODE</span></i></div>
+                            <div class="card-brand"><i class="ri-shield-check-fill"><span>SECURED PROFILE</span></i></div>
                             <span class="card-title">DONOR ID++</span>
                         </div>
                         <div class="card-body">
@@ -234,7 +234,7 @@
             const titles = {
                 'dashboard': ['Dashboard Overview', 'Real-time analytics and emergency health network status'],
                 'search': ['Live Emergency Radar', 'Spatial mapping and real-time donor tracking'],
-                'register': ['Node Registration', 'Join the global network and generate your digital pass']
+                'register': ['Donor Registration', 'Join the global network and generate your digital pass']
             };
             document.getElementById('page-title').innerText = titles[view][0];
 
@@ -264,7 +264,7 @@
             grid.innerHTML = '';
 
             if (!donors.length) {
-                grid.innerHTML = '<div class="no-data"><i class="ri-alert-line"></i><p>No matching nodes found.</p></div>';
+                grid.innerHTML = '<div class="no-data"><i class="ri-alert-line"></i><p>No matching donors found.</p></div>';
                 return;
             }
 

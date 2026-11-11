@@ -14,7 +14,6 @@ def get_db_connection():
 
 def init_db():
   conn = get_db_connection()
-  # Clean reset to prevent schema misalignment on live servers
   conn.execute("DROP TABLE IF EXISTS donors")
   conn.execute("""
         CREATE TABLE donors (
@@ -30,7 +29,7 @@ def init_db():
             status TEXT DEFAULT 'Available'
         )
     """)
-  # Seed some initial realistic nodes for immediate map visualization
+  # Pre-seed realistic active lifelines for instant map rendering
   conn.executemany(
       """
         INSERT INTO donors (name, role, blood, location, phone, lat, lng, last_donation, status)
@@ -50,7 +49,7 @@ def init_db():
           ),
           (
               "Arun Kumar",
-              "Donor",
+              "Volunteer",
               "O+",
               "Anna Nagar",
               "9123456789",
@@ -72,7 +71,7 @@ def init_db():
           ),
           (
               "Priya Ramesh",
-              "Donor",
+              "Volunteer",
               "B+",
               "Velachery",
               "9711223344",
@@ -85,6 +84,10 @@ def init_db():
   )
   conn.commit()
   conn.close()
+
+
+# Initialize database instantly on app boot for Render / Gunicorn compatibility
+init_db()
 
 
 @app.route("/")
@@ -140,7 +143,7 @@ def search_donors():
 def register_donor():
   data = request.json
   name = data.get("name")
-  role = data.get("role", "Donor")
+  role = data.get("role", "Volunteer")
   blood = data.get("blood")
   location = data.get("location")
   phone = data.get("phone")
@@ -166,8 +169,6 @@ def register_donor():
 
   return jsonify({"success": True, "message": "Registered successfully!"})
 
-
-init_db()
 
 if __name__ == "__main__":
   app.run(host="0.0.0.0", port=5000, debug=True)

@@ -29,7 +29,6 @@ def init_db():
             status TEXT DEFAULT 'Available'
         )
     """)
-  # Seed default verified locations
   conn.executemany(
       """
         INSERT INTO donors (name, role, blood, location, phone, lat, lng, last_donation, status)
@@ -92,6 +91,27 @@ init_db()
 @app.route("/")
 def index():
   return render_template("index.html")
+
+
+@app.route("/api/stats", methods=["GET"])
+def get_stats():
+  conn = get_db_connection()
+  total_donors = conn.execute(
+      "SELECT COUNT(*) FROM donors WHERE role='Donor'"
+  ).fetchone()[0]
+  total_banks = conn.execute(
+      "SELECT COUNT(*) FROM donors WHERE role='Blood Bank'"
+  ).fetchone()[0]
+  total_units = total_donors * 3  # Estimated reserve metric
+  conn.close()
+  return jsonify(
+      {
+          "total_donors": total_donors,
+          "total_banks": total_banks,
+          "total_units": total_units,
+          "emergency_active": 4,
+      }
+  )
 
 
 @app.route("/api/search", methods=["GET"])

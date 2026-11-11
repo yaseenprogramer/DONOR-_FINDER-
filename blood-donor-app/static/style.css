@@ -31,7 +31,7 @@ body { background: #030712; color: #f3f4f6; height: 100vh; overflow: hidden; }
 /* DASHBOARD STYLES */
 .welcome-banner { background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9)); border: 1px solid rgba(239, 68, 68, 0.3); padding: 2rem; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 .welcome-text h2 { font-size: 1.5rem; color: #fff; margin-bottom: 6px; }
-.welcome-text p { font-size: 0.9rem; color: #94a3b8; }
+.welcome-text p { font-size: 0.9rem; color: #94a3b8; font-style: italic; }
 .status-pill { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 8px 16px; border-radius: 30px; font-weight: 700; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; }
 
 .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
@@ -86,7 +86,7 @@ body { background: #030712; color: #f3f4f6; height: 100vh; overflow: hidden; }
 
 /* DIGITAL PASS */
 .donor-id-card { background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 14px; padding: 1.25rem; box-shadow: 0 10px 30px rgba(239, 68, 68, 0.15); position: relative; overflow: hidden; }
-.card-ribbon { position: absolute; top: 12px; right: -32px; background: #ef4444; color: white; font-size: 0.65rem; font-weight: 800px; padding: 4px 34px; transform: rotate(35deg); }
+.card-ribbon { position: absolute; top: 12px; right: -32px; background: #ef4444; color: white; font-size: 0.65rem; font-weight: 800; padding: 4px 34px; transform: rotate(35deg); }
 .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 8px; margin-bottom: 12px; }
 .card-brand i { color: #22c55e; font-size: 0.85rem; display: flex; align-items: center; gap: 4px; font-weight: 600; }
 .card-title { font-size: 0.75rem; letter-spacing: 1px; color: #94a3b8; font-weight: 700; }

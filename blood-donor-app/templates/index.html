@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DonorFinder++ | Global Emergency Blood Network</title>
+    <title>DonorFinder++ | Your Comrade in Critical Times</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -14,22 +14,20 @@
             <i class="ri-heart-pulse-fill neon-pulse"></i>
             <span>DonorFinder<span>++</span></span>
         </div>
-        <div class="live-badge">
-            <span class="pulse-dot"></span> Live Radar Active
-        </div>
+        <div class="tagline-desktop">Your comrade during difficult times</div>
         <nav>
-            <button id="btn-search" class="active" onclick="switchView('search')"><i class="ri-radar-line"></i> Live Map Radar</button>
-            <button id="btn-register" onclick="switchView('register')"><i class="ri-user-shared-line"></i> Join Network</button>
+            <button id="btn-search" class="active" onclick="switchView('search')"><i class="ri-radar-line"></i> <span>Live Radar</span></button>
+            <button id="btn-register" onclick="switchView('register')"><i class="ri-user-shared-line"></i> <span>Join Network</span></button>
         </nav>
     </header>
 
     <main>
-        <!-- SEARCH VIEW WITH INTERACTIVE MAP -->
+        <!-- SEARCH VIEW -->
         <section id="search-view" class="view">
             <div class="search-panel animate-fade">
                 <div class="panel-header">
                     <h2>Emergency Blood Radar</h2>
-                    <p>Real-time spatial matching for critical care nodes.</p>
+                    <p>Connecting lives instantly when it matters most.</p>
                 </div>
                 <div class="filter-group">
                     <select id="blood-q" onchange="triggerSearch()">
@@ -40,11 +38,11 @@
                         <option value="O+">O+</option> <option value="O-">O-</option>
                     </select>
                     <select id="role-q" onchange="triggerSearch()">
-                        <option value="All">🏥 All Node Types (Donors & Banks)</option>
-                        <option value="Donor">Individual Volunteer Donors</option>
-                        <option value="Blood Bank">Verified Blood Banks & Hospitals</option>
+                        <option value="All">🏥 All Sources (Donors & Hospitals)</option>
+                        <option value="Donor">Hero Volunteers</option>
+                        <option value="Blood Bank">Verified Hospitals & Banks</option>
                     </select>
-                    <input type="text" id="loc-q" placeholder="🔍 Filter by area or hospital..." oninput="triggerSearch()">
+                    <input type="text" id="loc-q" placeholder="🔍 Search city, area or hospital..." oninput="triggerSearch()">
                 </div>
                 <div id="donor-results" class="results-grid"></div>
             </div>
@@ -55,46 +53,47 @@
         <section id="register-view" class="view hidden">
             <div class="form-container animate-fade">
                 <div class="form-card glass-card">
-                    <h2>Register Emergency Node</h2>
-                    <p>Auto-detects your location for instant map plotting.</p>
+                    <h2>Become a Lifeline</h2>
+                    <p>Register to generate your official Digital Donor Pass.</p>
                     <form id="reg-form" onsubmit="submitDonor(event)">
-                        <input type="text" id="reg-name" placeholder="Full Name / Hospital Name" required>
+                        <input type="text" id="reg-name" placeholder="Full Name or Hospital Name" required>
                         <select id="reg-role" required>
-                            <option value="Donor">Individual Volunteer Donor</option>
-                            <option value="Blood Bank">Verified Blood Bank / Hospital</option>
+                            <option value="Donor">Hero Volunteer Donor</option>
+                            <option value="Blood Bank">Verified Hospital / Blood Bank</option>
                         </select>
                         <select id="reg-blood" required>
-                            <option value="" disabled selected>Select Blood Group / Managed Type</option>
-                            <option value="All">All Groups (Blood Bank Hub)</option>
+                            <option value="" disabled selected>Select Blood Group</option>
+                            <option value="All">All Groups (Hospital Hub)</option>
                             <option value="A+">A+</option><option value="A-">A-</option>
                             <option value="B+">B+</option><option value="B-">B-</option>
                             <option value="AB+">AB+</option><option value="AB-">AB-</option>
                             <option value="O+">O+</option><option value="O-">O-</option>
                         </select>
-                        <input type="text" id="reg-location" placeholder="City / Area Name" required>
-                        <input type="tel" id="reg-phone" placeholder="WhatsApp Phone Number" required>
+                        <input type="text" id="reg-location" placeholder="City or Locality Name" required>
+                        <input type="tel" id="reg-phone" placeholder="WhatsApp Phone Number (e.g. 9876543210)" required>
                         
                         <div class="gps-row">
-                            <button type="button" class="btn-gps" onclick="fetchGPS()"><i class="ri-gps-line"></i> Auto-Detect GPS Location</button>
+                            <button type="button" class="btn-gps" onclick="fetchGPS()"><i class="ri-gps-line"></i> Auto-Detect Location</button>
                             <span id="gps-status" class="gps-ok">GPS Ready</span>
                         </div>
                         <input type="hidden" id="reg-lat" value="13.0827">
                         <input type="hidden" id="reg-lng" value="80.2707">
 
                         <div id="donation-date-container">
-                            <label class="date-label">Last Donation Date (90-day cooldown tracker):</label>
+                            <label class="date-label">Last Donation Date (90-day safe cooldown):</label>
                             <input type="date" id="reg-date">
                         </div>
 
-                        <button type="submit" class="btn-glow">Generate Digital Pass & Broadcast Node</button>
+                        <button type="submit" class="btn-glow">Generate Digital Pass & Join</button>
                     </form>
                 </div>
 
-                <!-- DIGITAL DONOR CARD PREVIEW -->
+                <!-- DIGITAL DONOR PASS CARD PREVIEW -->
                 <div id="digital-card" class="donor-id-card hidden animate-slide">
+                    <div class="card-ribbon">OFFICIAL DIGITAL PASS</div>
                     <div class="card-header">
-                        <i class="ri-shield-check-fill"><span>SECURE VERIFIED NODE</span></i>
-                        <span class="card-title">DONOR PASS++</span>
+                        <div class="card-brand"><i class="ri-shield-check-fill"><span>VERIFIED LIFELINE</span></i></div>
+                        <span class="card-title">DONOR ID</span>
                     </div>
                     <div class="card-body">
                         <div class="blood-badge-lg" id="card-blood">O+</div>
@@ -106,7 +105,7 @@
                     </div>
                     <div class="card-footer">
                         <div class="eligibility-status" id="card-eligibility">Status: Active</div>
-                        <small>Secured by DonorFinder++ Protocol</small>
+                        <small>Your Comrade in Difficult Times</small>
                     </div>
                 </div>
             </div>
@@ -116,12 +115,11 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         let map = L.map('map', {zoomControl: false}).setView([13.0827, 80.2707], 12);
-        L.control.position = 'bottomright';
         L.control.zoom({position: 'bottomright'}).addTo(map);
         
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors'
+            attribution: '&copy; OpenStreetMap'
         }).addTo(map);
 
         let markersLayer = L.layerGroup().addTo(map);
@@ -138,14 +136,14 @@
                         userLng = position.coords.longitude;
                         document.getElementById('reg-lat').value = userLat;
                         document.getElementById('reg-lng').value = userLng;
-                        status.innerText = '📍 GPS Locked Successfully!';
+                        status.innerText = '📍 Location Locked!';
                     },
                     (error) => {
-                        status.innerText = '⚠️ Using default fallback location';
+                        status.innerText = '⚠️ Using default map center';
                     }
                 );
             } else {
-                status.innerText = 'Geolocation unsupported';
+                status.innerText = 'GPS not supported';
             }
         }
 
@@ -168,7 +166,7 @@
             const l = document.getElementById('loc-q').value;
             const grid = document.getElementById('donor-results');
             
-            grid.innerHTML = '<div class="loader"><i class="ri-loader-4-line ri-spin"></i> Scanning live geospatial grid...</div>';
+            grid.innerHTML = '<div class="loader"><i class="ri-loader-4-line ri-spin"></i> Scanning live network...</div>';
 
             const res = await fetch(`/api/search?blood=${encodeURIComponent(b)}&role=${encodeURIComponent(r)}&location=${encodeURIComponent(l)}`);
             const donors = await res.json();
@@ -177,7 +175,7 @@
             grid.innerHTML = '';
 
             if (!donors.length) {
-                grid.innerHTML = '<div class="no-data"><i class="ri-alert-line"></i><p>No emergency nodes found matching criteria.</p></div>';
+                grid.innerHTML = '<div class="no-data"><i class="ri-alert-line"></i><p>No matching heroes found right now.</p></div>';
                 return;
             }
 
@@ -187,13 +185,13 @@
                 card.innerHTML = `
                     <div class="badge ${d.role === 'Blood Bank' ? 'badge-bank' : ''}">${d.blood}</div>
                     <div class="meta">
-                        <h3>${d.name} <span class="role-tag">${d.role}</span></h3>
+                        <h3>${d.name} <span class="role-tag">${d.role === 'Blood Bank' ? 'Hospital' : 'Hero'}</span></h3>
                         <p><i class="ri-map-pin-2-fill"></i> ${d.location}</p>
                         <small class="${d.eligible ? 'text-green' : 'text-orange'}">
-                            ${d.role === 'Blood Bank' ? '🏥 Verified Institution Hub' : (d.eligible ? '🟢 Ready to Donate' : `⏳ Cooldown (${d.days_remaining}d left)`)}
+                            ${d.role === 'Blood Bank' ? '🏥 Verified Hospital Hub' : (d.eligible ? '🟢 Ready to Donate' : `⏳ Cooldown (${d.days_remaining}d left)`)}
                         </small>
                     </div>
-                    <a href="https://wa.me/${d.phone}?text=EMERGENCY!%20Blood%20Group%20${d.blood}%20needed%20urgently%20at%20location!" target="_blank" class="wa-btn" title="Instant WhatsApp Dispatch">
+                    <a href="https://wa.me/${d.phone}?text=EMERGENCY!%20Blood%20Group%20${d.blood}%20needed%20urgently!" target="_blank" class="wa-btn" title="WhatsApp Emergency Connect">
                         <i class="ri-whatsapp-line"></i>
                     </a>
                 `;
@@ -203,16 +201,16 @@
                     let pinColor = d.role === 'Blood Bank' ? '#3b82f6' : '#ef4444';
                     let customIcon = L.divIcon({
                         className: 'custom-map-marker',
-                        html: `<div style="background-color: ${pinColor}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 10px ${pinColor};"></div>`,
-                        iconSize: [14, 14]
+                        html: `<div style="background-color: ${pinColor}; width: 16px; height: 16px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 12px ${pinColor};"></div>`,
+                        iconSize: [16, 16]
                     });
 
                     let marker = L.marker([d.lat, d.lng], {icon: customIcon}).bindPopup(`
-                        <div style="color: #000; font-family: Inter, sans-serif;">
-                            <b>${d.name}</b><br>
-                            <span style="font-weight:700; color:${pinColor}">${d.role} - ${d.blood}</span><br>
+                        <div style="color: #000; font-family: Inter, sans-serif; padding: 4px;">
+                            <b style="font-size: 14px;">${d.name}</b><br>
+                            <span style="font-weight:700; color:${pinColor}">${d.role} — Group: ${d.blood}</span><br>
                             📍 ${d.location}<br>
-                            <a href="https://wa.me/${d.phone}?text=Emergency%20blood%20dispatch!" target="_blank" style="color: #22c55e; font-weight:bold; text-decoration:none;">💬 Connect on WhatsApp</a>
+                            <a href="https://wa.me/${d.phone}?text=Emergency%20blood%20dispatch!" target="_blank" style="color: #16a34a; font-weight:bold; text-decoration:none; display:inline-block; margin-top:4px;">💬 Connect on WhatsApp</a>
                         </div>
                     `);
                     markersLayer.addLayer(marker);
@@ -248,7 +246,7 @@
                 
                 const eligibilityEl = document.getElementById('card-eligibility');
                 if (data.role === 'Blood Bank') {
-                    eligibilityEl.innerHTML = 'Status: <span class="text-blue">VERIFIED INSTITUTIONAL NODE</span>';
+                    eligibilityEl.innerHTML = 'Status: <span class="text-blue">VERIFIED HOSPITAL HUB</span>';
                 } else {
                     const lastDate = new Date(data.last_donation);
                     const today = new Date();
@@ -260,7 +258,7 @@
                 document.getElementById('digital-card').classList.remove('hidden');
                 switchView('search');
             } else {
-                alert('Registration failed. Please check inputs.');
+                alert('Registration failed. Please verify your inputs.');
             }
         }
 

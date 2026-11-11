@@ -29,7 +29,7 @@ def init_db():
             status TEXT DEFAULT 'Available'
         )
     """)
-  # Pre-seed realistic active lifelines for instant map rendering
+  # Seed default verified locations
   conn.executemany(
       """
         INSERT INTO donors (name, role, blood, location, phone, lat, lng, last_donation, status)
@@ -37,7 +37,7 @@ def init_db():
     """,
       [
           (
-              "City General Hospital Blood Bank",
+              "City General Hospital",
               "Blood Bank",
               "All",
               "Chennai Central",
@@ -49,7 +49,7 @@ def init_db():
           ),
           (
               "Arun Kumar",
-              "Volunteer",
+              "Donor",
               "O+",
               "Anna Nagar",
               "9123456789",
@@ -71,7 +71,7 @@ def init_db():
           ),
           (
               "Priya Ramesh",
-              "Volunteer",
+              "Donor",
               "B+",
               "Velachery",
               "9711223344",
@@ -86,7 +86,6 @@ def init_db():
   conn.close()
 
 
-# Initialize database instantly on app boot for Render / Gunicorn compatibility
 init_db()
 
 
@@ -143,7 +142,7 @@ def search_donors():
 def register_donor():
   data = request.json
   name = data.get("name")
-  role = data.get("role", "Volunteer")
+  role = data.get("role", "Donor")
   blood = data.get("blood")
   location = data.get("location")
   phone = data.get("phone")

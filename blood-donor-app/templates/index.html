@@ -1,368 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DonorFinder++ | Your Comrade During Difficult Times</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Donor++ | Find a blood donor in seconds</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="app-layout">
-        <!-- SIDEBAR NAVIGATION -->
-        <aside class="sidebar">
-            <div class="logo">
-                <i class="ri-heart-pulse-fill neon-pulse"></i>
-                <span>DonorFinder<span>++</span></span>
-            </div>
-            <div class="nav-menu">
-                <button id="btn-dash" class="nav-item active" onclick="switchView('dashboard')"><i class="ri-dashboard-3-line"></i> Dashboard</button>
-                <button id="btn-search" class="nav-item" onclick="switchView('search')"><i class="ri-radar-line"></i> Live Radar & Map</button>
-                <button id="btn-register" class="nav-item" onclick="switchView('register')"><i class="ri-user-shared-line"></i> Join Network</button>
-            </div>
-            <div class="sidebar-footer">
-                <p>Your comrade during difficult times</p>
-            </div>
-        </aside>
+<div class="bg"></div>
+<header>
+  <div class="logo">Donor<b>++</b><svg class="ecg" viewBox="0 0 120 30"><polyline points="0,15 30,15 38,3 48,27 56,15 120,15"/></svg></div>
+  <nav>
+    <button class="on" data-tab="home" data-i="nav1">Dashboard</button>
+    <button data-tab="radar" data-i="nav2">Live radar</button>
+    <button data-tab="join" data-i="nav3">Join network</button>
+  </nav>
+  <div class="tools"><span class="pill"><i></i>Live</span><button id="lang">தமிழ்</button></div>
+</header>
+<main>
+<section id="home" class="tab on">
+  <div class="hero glass">
+    <p class="tag" data-i="tag">Your comrade during difficult times</p>
+    <h1>Blood, found nearby before the clock runs out</h1>
+    <p class="sub">Donor++ matches a patient with compatible donors who are actually eligible today, then alerts them on WhatsApp in one tap.</p>
+    <button class="sos" id="sosBtn" data-i="sos">I need blood now</button>
+  </div>
+  <div class="stats">
+    <div class="glass stat"><b data-n="donors">0</b><span data-i="s1">Hero volunteers</span></div>
+    <div class="glass stat"><b data-n="banks">0</b><span data-i="s2">Blood banks</span></div>
+    <div class="glass stat"><b data-n="eligible">0</b><span data-i="s3">Eligible today</span></div>
+    <div class="glass stat"><b data-n="requests">0</b><span data-i="s4">Emergency requests</span></div>
+  </div>
+  <div class="steps">
+    <div class="glass"><h3 data-i="h1">Verified sign-up</h3><p>Phone OTP and explicit consent before anyone joins the network.</p></div>
+    <div class="glass"><h3 data-i="h2">Cooldown shield</h3><p>Donors who gave blood in the last 90 days are never alerted.</p></div>
+    <div class="glass"><h3 data-i="h3">One-tap alert</h3><p>A ready-made WhatsApp message with the patient's location and contact.</p></div>
+  </div>
+  <p class="note glass">India's yearly blood shortfall is estimated at 1 to 4 million units depending on the source (Ministry of Health data via Outlook India, Medical Dialogues).</p>
+</section>
 
-        <!-- MAIN CONTENT AREA -->
-        <main class="main-content">
-            <header class="top-header">
-                <div class="header-title">
-                    <h1 id="page-title">Dashboard Overview</h1>
-                    <p>Real-time analytics and emergency health network status</p>
-                </div>
-                <div class="live-badge">
-                    <span class="pulse-dot"></span> System Operational
-                </div>
-            </header>
+<section id="radar" class="tab">
+  <div class="glass panel">
+    <div class="chips" id="chips" aria-label="Blood group needed"></div>
+    <label>Radius <b id="rv">15</b> km <input type="range" id="rad" min="3" max="60" value="15"></label>
+    <button id="loc" class="ghost">Use my location</button>
+    <div id="shield" class="shield">Pick a blood group to scan.</div>
+  </div>
+  <div id="map"></div>
+  <div id="list" class="list"></div>
+</section>
 
-            <!-- DASHBOARD VIEW -->
-            <section id="dashboard-view" class="view-panel">
-                <div class="welcome-banner glass-card animate-fade">
-                    <div class="welcome-text">
-                        <h2>Welcome back, Hero 🦸‍♂️🩸</h2>
-                        <p>"To the world you may be one person, but to one person you may be the world."</p>
-                    </div>
-                    <div class="status-pill">
-                        <i class="ri-shield-check-fill"></i> ACTIVE OVERWATCH
-                    </div>
-                </div>
+<section id="join" class="tab">
+  <form id="reg" class="glass form">
+    <div class="seg"><button type="button" class="on" data-kind="donor">Hero volunteer</button><button type="button" data-kind="hospital">Hospital or blood bank</button></div>
+    <input id="name" placeholder="Full name or hospital name" required maxlength="60" autocomplete="name">
+    <select id="rg" class="gsel" aria-label="Blood group"></select>
+    <input id="ph" placeholder="10-digit mobile number" inputmode="numeric" maxlength="10" required>
+    <label>Area <select id="area"></select></label>
+    <button type="button" id="gps2" class="ghost">Detect GPS instead</button>
+    <label id="ldw">Last donation date (90-day cooldown tracker)<input type="date" id="ld"></label>
+    <label class="chk"><input type="checkbox" required> I agree to be contacted in medical emergencies</label>
+    <div class="row"><input id="otp" placeholder="4-digit OTP" inputmode="numeric" maxlength="4"><button type="button" id="sendOtp" class="ghost">Send OTP</button></div>
+    <button class="go">Generate digital pass</button>
+  </form>
+  <div id="pass" class="pass glass"></div>
+</section>
+</main>
 
-                <div class="metrics-grid">
-                    <div class="metric-card glass-card">
-                        <div class="metric-icon bg-red"><i class="ri-user-heart-line"></i></div>
-                        <div>
-                            <h3 id="stat-donors">--</h3>
-                            <p>Hero Volunteers</p>
-                        </div>
-                    </div>
-                    <div class="metric-card glass-card">
-                        <div class="metric-icon bg-blue"><i class="ri-hospital-line"></i></div>
-                        <div>
-                            <h3 id="stat-banks">--</h3>
-                            <p>Verified Blood Banks</p>
-                        </div>
-                    </div>
-                    <div class="metric-card glass-card">
-                        <div class="metric-icon bg-green"><i class="ri-drop-fill"></i></div>
-                        <div>
-                            <h3 id="stat-units">--</h3>
-                            <p>Estimated Units Ready</p>
-                        </div>
-                    </div>
-                </div>
+<div id="modal" class="modal"><div class="glass box">
+  <button class="x" id="closeM" aria-label="Close">&times;</button>
+  <h2>Emergency request</h2>
+  <form id="sosForm">
+    <select id="sg" class="gsel" required aria-label="Blood group needed"></select>
+    <input id="su" type="number" min="1" max="10" value="1" aria-label="Units needed">
+    <input id="sp" placeholder="Patient name" maxlength="40">
+    <input id="sc" placeholder="Your contact number" inputmode="numeric" maxlength="10" required>
+    <button class="go">Find and alert donors</button>
+  </form>
+  <div id="sosOut" class="list"></div>
+</div></div>
+<div id="toast" role="status" aria-live="polite"></div>
 
-                <div class="dashboard-grid">
-                    <div class="dash-box glass-card">
-                        <h3>Quick Emergency Dispatch</h3>
-                        <p>Need urgent blood right now? Switch to the Live Radar to locate nearest donors on the spatial map instantly.</p>
-                        <button class="btn-glow" onclick="switchView('search')">Launch Live Emergency Radar</button>
-                    </div>
-                    <div class="dash-box glass-card">
-                        <h3>Become a Donor</h3>
-                        <p>Register your profile or blood bank to generate your verified secure Digital Donor Pass.</p>
-                        <button class="btn-outline" onclick="switchView('register')">Register Now</button>
-                    </div>
-                </div>
-            </section>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const G=["A+","A-","B+","B-","AB+","AB-","O+","O-"];
+const AREAS={"Chennai Central":[13.0827,80.2707],"Anna Nagar":[13.085,80.2101],"Avadi":[13.1067,80.097],"Ambattur":[13.1143,80.1548],"Tambaram":[12.9249,80.1],"Velachery":[12.9815,80.218],"Tiruvallur":[13.1431,79.9086],"Kanchipuram":[12.8342,79.7036]};
+const TA={nav1:"முகப்பு",nav2:"நேரடி ரேடார்",nav3:"இணையுங்கள்",tag:"கடினமான நேரங்களில் உங்கள் தோழன்",sos:"அவசர இரத்தம் தேவை",s1:"தன்னார்வ நாயகர்கள்",s2:"இரத்த வங்கிகள்",s3:"இன்று தகுதியானவர்கள்",s4:"அவசர கோரிக்கைகள்",h1:"சரிபார்க்கப்பட்ட பதிவு",h2:"பாதுகாப்பு கவசம்",h3:"ஒரே தட்டலில் அலர்ட்"};
+let lang="en",me={lat:13.0827,lng:80.2707},grp="O+",kind="donor",map,layer;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const api=(u,o)=>fetch(u,o&&{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(async r=>{const j=await r.json();if(!r.ok)throw Error(j.error||"Something went wrong");return j});
+const toast=(m,bad)=>{const t=$("#toast");t.textContent=m;t.className="show"+(bad?" bad":"");clearTimeout(toast.t);toast.t=setTimeout(()=>t.className="",3800)};
 
-            <!-- SEARCH & MAP VIEW -->
-            <section id="search-view" class="view-panel hidden">
-                <div class="search-split">
-                    <div class="search-panel">
-                        <div class="filter-group">
-                            <select id="blood-q" onchange="triggerSearch()">
-                                <option value="All">⚡ All Blood Groups</option>
-                                <option value="A+">A+</option> <option value="A-">A-</option>
-                                <option value="B+">B+</option> <option value="B-">B-</option>
-                                <option value="AB+">AB+</option> <option value="AB-">AB-</option>
-                                <option value="O+">O+</option> <option value="O-">O-</option>
-                            </select>
-                            <select id="role-q" onchange="triggerSearch()">
-                                <option value="All">🏥 All Sources (Donors & Hospitals)</option>
-                                <option value="Donor">Hero Volunteers</option>
-                                <option value="Blood Bank">Verified Hospitals & Banks</option>
-                            </select>
-                            <input type="text" id="loc-q" placeholder="🔍 Search area or hospital..." oninput="triggerSearch()">
-                        </div>
-                        <div id="donor-results" class="results-grid"></div>
-                    </div>
-                    <div id="map"></div>
-                </div>
-            </section>
+$$("[data-i]").forEach(e=>e.dataset.en=e.textContent);
+$("#lang").onclick=()=>{lang=lang=="en"?"ta":"en";$("#lang").textContent=lang=="en"?"தமிழ்":"English";$$("[data-i]").forEach(e=>e.textContent=lang=="ta"&&TA[e.dataset.i]||e.dataset.en)};
 
-            <!-- REGISTER VIEW -->
-            <section id="register-view" class="view-panel hidden">
-                <div class="form-container animate-fade">
-                    <div class="form-card glass-card">
-                        <h2>Donor & Hospital Registration</h2>
-                        <p>Auto-detects location for precise map routing.</p>
-                        <form id="reg-form" onsubmit="submitDonor(event)">
-                            <input type="text" id="reg-name" placeholder="Full Name or Hospital Name" required>
-                            <select id="reg-role" required>
-                                <option value="Donor">Hero Volunteer Donor</option>
-                                <option value="Blood Bank">Verified Hospital / Blood Bank</option>
-                            </select>
-                            <select id="reg-blood" required>
-                                <option value="" disabled selected>Select Blood Group</option>
-                                <option value="All">All Groups (Hospital Hub)</option>
-                                <option value="A+">A+</option><option value="A-">A-</option>
-                                <option value="B+">B+</option><option value="B-">B-</option>
-                                <option value="AB+">AB+</option><option value="AB-">AB-</option>
-                                <option value="O+">O+</option><option value="O-">O-</option>
-                            </select>
-                            <input type="text" id="reg-location" placeholder="City or Locality Name" required>
-                            <input type="tel" id="reg-phone" placeholder="WhatsApp Phone Number (e.g. 9876543210)" required>
-                            
-                            <div class="gps-row">
-                                <button type="button" class="btn-gps" onclick="fetchGPS()"><i class="ri-gps-line"></i> Auto-Detect GPS</button>
-                                <span id="gps-status" class="gps-ok">GPS Ready</span>
-                            </div>
-                            <input type="hidden" id="reg-lat" value="13.0827">
-                            <input type="hidden" id="reg-lng" value="80.2707">
+$$(".gsel").forEach(s=>s.innerHTML='<option value="">Blood group</option>'+G.map(g=>`<option>${g}</option>`).join(""));
+$("#area").innerHTML=Object.keys(AREAS).map(a=>`<option>${a}</option>`).join("");
+$("#area").onchange=()=>{const[la,lo]=AREAS[$("#area").value];me={lat:la,lng:lo}};
+$("#chips").innerHTML=G.map(g=>`<button class="${g==grp?"on":""}">${g}</button>`).join("");
+$("#chips").onclick=e=>{if(e.target.tagName!="BUTTON")return;grp=e.target.textContent;$$("#chips button").forEach(b=>b.classList.toggle("on",b==e.target));search()};
+$("#rad").oninput=e=>$("#rv").textContent=e.target.value;
+$("#rad").onchange=()=>search();
 
-                            <div id="donation-date-container">
-                                <label class="date-label">Last Donation Date (90-day cooldown tracker):</label>
-                                <input type="date" id="reg-date">
-                            </div>
+function count(e,to){const t0=performance.now();(function f(t){const p=Math.min((t-t0)/900,1);e.textContent=Math.round(to*p);if(p<1)requestAnimationFrame(f)})(t0)}
+async function stats(){try{const s=await api("/api/stats");$$("[data-n]").forEach(e=>count(e,s[e.dataset.n]))}catch(e){}}
 
-                            <button type="submit" class="btn-glow">Generate Digital Pass & Register</button>
-                        </form>
-                    </div>
+function go(id){$$("nav button").forEach(b=>b.classList.toggle("on",b.dataset.tab==id));$$(".tab").forEach(s=>s.classList.toggle("on",s.id==id));if(id=="radar"){initMap();search()}if(id=="home")stats()}
+$$("nav button").forEach(b=>b.onclick=()=>go(b.dataset.tab));
 
-                    <!-- DIGITAL DONOR PASS -->
-                    <div id="digital-card" class="donor-id-card hidden animate-slide">
-                        <div class="card-ribbon">VERIFIED PASS</div>
-                        <div class="card-header">
-                            <div class="card-brand"><i class="ri-shield-check-fill"><span>SECURED PROFILE</span></i></div>
-                            <span class="card-title">DONOR ID++</span>
-                        </div>
-                        <div class="card-body">
-                            <div class="blood-badge-lg" id="card-blood">O+</div>
-                            <div class="card-details">
-                                <h3 id="card-name"></h3>
-                                <p><i class="ri-map-pin-2-fill"></i> <span id="card-loc"></span></p>
-                                <p><i class="ri-phone-fill"></i> <span id="card-phone"></span></p>
-                            </div>
-                        </div>
-                        <div class="card-footer">
-                            <div class="eligibility-status" id="card-eligibility">Status: Active</div>
-                            <small>Your Comrade in Difficult Times</small>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </main>
-    </div>
+function initMap(){
+  if(map){map.invalidateSize();return}
+  if(!window.L){$("#map").textContent="The map needs an internet connection.";return}
+  map=L.map("map",{zoomControl:false}).setView([me.lat,me.lng],11);
+  L.control.zoom({position:"bottomright"}).addTo(map);
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{attribution:"&copy; OpenStreetMap &copy; CARTO",maxZoom:19}).addTo(map);
+  layer=L.layerGroup().addTo(map);
+}
+function locate(cb){
+  if(!navigator.geolocation)return toast("GPS is unavailable, using the selected area",1);
+  navigator.geolocation.getCurrentPosition(p=>{me={lat:p.coords.latitude,lng:p.coords.longitude};toast("Location locked");cb&&cb()},()=>toast("GPS was blocked, using the selected area",1),{timeout:8000});
+}
+$("#loc").onclick=()=>locate(search);
+$("#gps2").onclick=()=>locate();
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        let map = L.map('map', {zoomControl: false}).setView([13.0827, 80.2707], 12);
-        L.control.zoom({position: 'bottomright'}).addTo(map);
-        
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap'
-        }).addTo(map);
+const card=x=>`<div class="card glass"><div class="bt ${x.kind}">${x.kind=="donor"?esc(x.grp):"Bank"}</div><div><b>${esc(x.name)}</b><small>${x.kind=="donor"?(x.exact?"Exact match":"Compatible"):"Hospital or blood bank"} · ${x.phone}</small></div><span class="km">${x.km} km</span></div>`;
+async function search(){
+  try{
+    const d=await api(`/api/search?group=${encodeURIComponent(grp)}&lat=${me.lat}&lng=${me.lng}&radius=${$("#rad").value}`);
+    $("#shield").innerHTML=`Cooldown shield: <b>${d.hidden}</b> recent donors hidden. Compatible groups: ${d.compatible.join(", ")}`;
+    $("#list").innerHTML=d.results.map(card).join("")||'<p class="empty">No donors in range. Widen the radius.</p>';
+    if(!map)return;
+    layer.clearLayers();
+    L.circle([me.lat,me.lng],{radius:$("#rad").value*1000,color:"#00e5ff",weight:1,fillOpacity:.05}).addTo(layer);
+    L.marker([me.lat,me.lng],{icon:L.divIcon({className:"me",iconSize:[18,18]})}).addTo(layer);
+    d.results.forEach(x=>L.circleMarker([x.lat,x.lng],{radius:9,color:x.kind=="donor"?"#ff2d55":"#00e5ff",fillOpacity:.8}).bindPopup(`<b>${esc(x.name)}</b><br>${esc(x.grp)} · ${x.km} km`).addTo(layer));
+    map.fitBounds(L.latLngBounds([[me.lat,me.lng],...d.results.map(x=>[x.lat,x.lng])]),{padding:[40,40],maxZoom:13});
+  }catch(e){toast(e.message,1)}
+}
 
-        let markersLayer = L.layerGroup().addTo(map);
-        let userLat = 13.0827;
-        let userLng = 80.2707;
+$$(".seg button").forEach(b=>b.onclick=()=>{kind=b.dataset.kind;$$(".seg button").forEach(x=>x.classList.toggle("on",x==b));$("#rg").style.display=$("#ldw").style.display=kind=="donor"?"":"none"});
+$("#sendOtp").onclick=async()=>{try{const d=await api("/api/otp",{phone:$("#ph").value});toast("Demo OTP: "+d.demo_otp+" (a live deployment sends this by SMS)")}catch(e){toast(e.message,1)}};
+$("#reg").onsubmit=async e=>{
+  e.preventDefault();
+  try{
+    const name=$("#name").value;
+    const d=await api("/api/register",{kind,name,group:$("#rg").value,phone:$("#ph").value,otp:$("#otp").value,last_donation:$("#ld").value,lat:me.lat,lng:me.lng});
+    $("#pass").innerHTML=`<small>${d.kind=="donor"?"Verified donor pass":"Verified partner pass"}</small><div class="big">${d.grp=="ALL"?"Bank":esc(d.grp)}</div><b>${esc(name)}</b><p>${d.pass_id} · ${d.wait?`Eligible in ${d.wait} days`:"Active and eligible"}</p>`;
+    $("#pass").classList.add("show");toast("You are in the network");e.target.reset();
+  }catch(x){toast(x.message,1)}
+};
 
-        function fetchGPS() {
-            const status = document.getElementById('gps-status');
-            if (navigator.geolocation) {
-                status.innerText = 'Locating...';
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        userLat = position.coords.latitude;
-                        userLng = position.coords.longitude;
-                        document.getElementById('reg-lat').value = userLat;
-                        document.getElementById('reg-lng').value = userLng;
-                        status.innerText = '📍 GPS Locked!';
-                    },
-                    (error) => {
-                        status.innerText = '⚠️ Fallback location used';
-                    }
-                );
-            } else {
-                status.innerText = 'GPS unsupported';
-            }
-        }
-
-        async function loadStats() {
-            try {
-                const res = await fetch('/api/stats');
-                const data = await res.json();
-                document.getElementById('stat-donors').innerText = data.total_donors;
-                document.getElementById('stat-banks').innerText = data.total_banks;
-                document.getElementById('stat-units').innerText = data.total_units;
-            } catch(e) {}
-        }
-
-        function switchView(view) {
-            document.getElementById('dashboard-view').className = view === 'dashboard' ? 'view-panel' : 'view-panel hidden';
-            document.getElementById('search-view').className = view === 'search' ? 'view-panel' : 'view-panel hidden';
-            document.getElementById('register-view').className = view === 'register' ? 'view-panel' : 'view-panel hidden';
-            
-            document.getElementById('btn-dash').classList.toggle('active', view === 'dashboard');
-            document.getElementById('btn-search').classList.toggle('active', view === 'search');
-            document.getElementById('btn-register').classList.toggle('active', view === 'register');
-            
-            const titles = {
-                'dashboard': ['Dashboard Overview', 'Real-time analytics and emergency health network status'],
-                'search': ['Live Emergency Radar', 'Spatial mapping and real-time donor tracking'],
-                'register': ['Donor Registration', 'Join the global network and generate your digital pass']
-            };
-            document.getElementById('page-title').innerText = titles[view][0];
-
-            if(view === 'search') { 
-                setTimeout(() => {
-                    map.invalidateSize();
-                    triggerSearch();
-                }, 250); 
-            }
-            if(view === 'dashboard') {
-                loadStats();
-            }
-        }
-
-        async function triggerSearch() {
-            const b = document.getElementById('blood-q').value;
-            const r = document.getElementById('role-q').value;
-            const l = document.getElementById('loc-q').value;
-            const grid = document.getElementById('donor-results');
-            
-            grid.innerHTML = '<div class="loader"><i class="ri-loader-4-line ri-spin"></i> Scanning live network...</div>';
-
-            const res = await fetch(`/api/search?blood=${encodeURIComponent(b)}&role=${encodeURIComponent(r)}&location=${encodeURIComponent(l)}`);
-            const donors = await res.json();
-
-            markersLayer.clearLayers();
-            grid.innerHTML = '';
-
-            if (!donors.length) {
-                grid.innerHTML = '<div class="no-data"><i class="ri-alert-line"></i><p>No matching donors found.</p></div>';
-                return;
-            }
-
-            donors.forEach(d => {
-                const card = document.createElement('div');
-                card.className = `donor-card ${d.eligible ? 'eligible' : 'cooldown'}`;
-                card.innerHTML = `
-                    <div class="badge ${d.role === 'Blood Bank' ? 'badge-bank' : ''}">${d.blood}</div>
-                    <div class="meta">
-                        <h3>${d.name} <span class="role-tag">${d.role}</span></h3>
-                        <p><i class="ri-map-pin-2-fill"></i> ${d.location}</p>
-                        <small class="${d.eligible ? 'text-green' : 'text-orange'}">
-                            ${d.role === 'Blood Bank' ? '🏥 Verified Hospital Hub' : (d.eligible ? '🟢 Ready to Donate' : `⏳ Cooldown (${d.days_remaining}d left)`)}
-                        </small>
-                    </div>
-                    <a href="https://wa.me/${d.phone}?text=EMERGENCY!%20Blood%20Group%20${d.blood}%20needed%20urgently!" target="_blank" class="wa-btn" title="WhatsApp Emergency Connect">
-                        <i class="ri-whatsapp-line"></i>
-                    </a>
-                `;
-                grid.appendChild(card);
-
-                if (d.lat && d.lng) {
-                    let pinColor = d.role === 'Blood Bank' ? '#3b82f6' : '#ef4444';
-                    let customIcon = L.divIcon({
-                        className: 'custom-map-marker',
-                        html: `<div style="background-color: ${pinColor}; width: 16px; height: 16px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 0 12px ${pinColor};"></div>`,
-                        iconSize: [16, 16]
-                    });
-
-                    let marker = L.marker([d.lat, d.lng], {icon: customIcon}).bindPopup(`
-                        <div style="color: #000; font-family: Inter, sans-serif; padding: 4px;">
-                            <b style="font-size: 14px;">${d.name}</b><br>
-                            <span style="font-weight:700; color:${pinColor}">${d.role} — ${d.blood}</span><br>
-                            📍 ${d.location}<br>
-                            <a href="https://wa.me/${d.phone}?text=Emergency%20blood%20dispatch!" target="_blank" style="color: #16a34a; font-weight:bold; text-decoration:none; display:inline-block; margin-top:4px;">💬 Connect on WhatsApp</a>
-                        </div>
-                    `);
-                    markersLayer.addLayer(marker);
-                }
-            });
-        }
-
-        async function submitDonor(e) {
-            e.preventDefault();
-            const role = document.getElementById('reg-role').value;
-            const data = {
-                name: document.getElementById('reg-name').value,
-                role: role,
-                blood: document.getElementById('reg-blood').value,
-                location: document.getElementById('reg-location').value,
-                phone: document.getElementById('reg-phone').value,
-                lat: parseFloat(document.getElementById('reg-lat').value),
-                lng: parseFloat(document.getElementById('reg-lng').value),
-                last_donation: role === 'Blood Bank' ? '2026-01-01' : document.getElementById('reg-date').value
-            };
-
-            const res = await fetch('/api/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-
-            if (res.ok) {
-                document.getElementById('card-name').innerText = data.name;
-                document.getElementById('card-blood').innerText = data.blood;
-                document.getElementById('card-loc').innerText = data.location;
-                document.getElementById('card-phone').innerText = data.phone;
-                
-                const eligibilityEl = document.getElementById('card-eligibility');
-                if (data.role === 'Blood Bank') {
-                    eligibilityEl.innerHTML = 'Status: <span class="text-blue">VERIFIED HOSPITAL HUB</span>';
-                } else {
-                    const lastDate = new Date(data.last_donation);
-                    const today = new Date();
-                    const daysPassed = Math.floor((today - lastDate) / (1000 * 60 * 60 * 24));
-                    const eligible = daysPassed >= 90;
-                    eligibilityEl.innerHTML = eligible ? 'Status: <span class="text-green">ELIGIBLE TO DONATE</span>' : `Status: <span class="text-orange">COOLDOWN (${90 - daysPassed} days left)</span>`;
-                }
-
-                document.getElementById('digital-card').classList.remove('hidden');
-                switchView('search');
-            } else {
-                alert('Registration failed.');
-            }
-        }
-
-        window.onload = () => {
-            const todayStr = new Date().toISOString().split('T')[0];
-            const dateInput = document.getElementById('reg-date');
-            dateInput.max = todayStr;
-            dateInput.value = todayStr;
-            
-            document.getElementById('reg-role').addEventListener('change', (e) => {
-                document.getElementById('donation-date-container').style.display = e.target.value === 'Blood Bank' ? 'none' : 'block';
-            });
-
-            loadStats();
-        };
-    </script>
+$("#sosBtn").onclick=()=>{$("#modal").classList.add("show");locate()};
+$("#closeM").onclick=()=>$("#modal").classList.remove("show");
+$("#sosForm").onsubmit=async e=>{
+  e.preventDefault();
+  try{
+    const d=await api("/api/request",{group:$("#sg").value,units:$("#su").value,patient:$("#sp").value,contact:$("#sc").value,lat:me.lat,lng:me.lng});
+    $("#sosOut").innerHTML=`<p class="shield">${d.matches.length} matches found. ${d.hidden} donors hidden by the cooldown shield.</p>`+(d.matches.map(x=>`<div class="card glass"><div class="bt ${x.kind}">${x.kind=="donor"?esc(x.grp):"Bank"}</div><div><b>${esc(x.name)}</b><small>${x.km} km away</small></div><a class="wa" target="_blank" rel="noopener" href="${x.wa}">Alert</a></div>`).join("")||'<p class="empty">No match in range yet. Try a wider area.</p>');
+    stats();
+  }catch(x){toast(x.message,1)}
+};
+stats();setInterval(stats,30000);
+</script>
 </body>
 </html>

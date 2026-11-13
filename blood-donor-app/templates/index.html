@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Donor++ | Find a blood donor in seconds</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%23e11d2e' d='M32 4C22 20 12 30 12 42a20 20 0 0 0 40 0C52 30 42 20 32 4z'/%3E%3Cpath fill='%23fff' d='M29 32h6v6h6v6h-6v6h-6v-6h-6v-6h6z'/%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -11,41 +12,45 @@
 <body>
 <div class="bg"></div>
 <header>
-  <div class="logo">Donor<b>++</b><svg class="ecg" viewBox="0 0 120 30"><polyline points="0,15 30,15 38,3 48,27 56,15 120,15"/></svg></div>
+  <div class="logo">Donor<b>++</b></div>
   <nav>
     <button class="on" data-tab="home" data-i="nav1">Dashboard</button>
     <button data-tab="radar" data-i="nav2">Live radar</button>
     <button data-tab="join" data-i="nav3">Join network</button>
   </nav>
-  <div class="tools"><span class="pill"><i></i>Live</span><button id="lang">தமிழ்</button></div>
+  <div class="tools"><span class="pill"><i></i><span id="sync">Live</span></span><button id="lang">தமிழ்</button></div>
 </header>
 <main>
 <section id="home" class="tab on">
-  <div class="hero glass">
+  <div class="hero">
+    <i class="drop" style="--x:8%;--s:16px;--d:7s;--t:0s"></i><i class="drop" style="--x:24%;--s:10px;--d:9s;--t:-3s"></i><i class="drop" style="--x:46%;--s:14px;--d:8s;--t:-5s"></i><i class="drop" style="--x:68%;--s:18px;--d:10s;--t:-2s"></i><i class="drop" style="--x:88%;--s:12px;--d:7.5s;--t:-6s"></i>
+    <svg class="ecgbig" viewBox="0 0 600 60" preserveAspectRatio="none"><polyline points="0,30 160,30 190,6 215,54 240,30 600,30"/></svg>
     <p class="tag" data-i="tag">Your comrade during difficult times</p>
     <h1>Blood, found nearby before the clock runs out</h1>
-    <p class="sub">Donor++ matches a patient with compatible donors who are actually eligible today, then alerts them on WhatsApp in one tap.</p>
+    <p class="sub">Donor++ matches a patient with compatible donors who are eligible today, then alerts them on WhatsApp in one tap.</p>
     <button class="sos" id="sosBtn" data-i="sos">I need blood now</button>
   </div>
   <div class="stats">
-    <div class="glass stat"><b data-n="donors">0</b><span data-i="s1">Hero volunteers</span></div>
-    <div class="glass stat"><b data-n="banks">0</b><span data-i="s2">Blood banks</span></div>
-    <div class="glass stat"><b data-n="eligible">0</b><span data-i="s3">Eligible today</span></div>
-    <div class="glass stat"><b data-n="requests">0</b><span data-i="s4">Emergency requests</span></div>
+    <div class="stat" style="--i:0"><b data-n="donors">0</b><span data-i="s1">Hero volunteers</span></div>
+    <div class="stat" style="--i:1"><b data-n="banks">0</b><span data-i="s2">Blood banks</span></div>
+    <div class="stat" style="--i:2"><b data-n="eligible">0</b><span data-i="s3">Eligible today</span></div>
+    <div class="stat" style="--i:3"><b data-n="requests">0</b><span data-i="s4">Open requests</span></div>
   </div>
+  <h2 class="sec" data-i="bt">Live emergency board</h2>
+  <div id="board" class="list"></div>
   <div class="steps">
-    <div class="glass"><h3 data-i="h1">Verified sign-up</h3><p>Phone OTP and explicit consent before anyone joins the network.</p></div>
-    <div class="glass"><h3 data-i="h2">Cooldown shield</h3><p>Donors who gave blood in the last 90 days are never alerted.</p></div>
-    <div class="glass"><h3 data-i="h3">One-tap alert</h3><p>A ready-made WhatsApp message with the patient's location and contact.</p></div>
+    <div style="--i:0"><h3 data-i="h1">Verified sign-up</h3><p>Phone OTP and explicit consent before anyone joins.</p></div>
+    <div style="--i:1"><h3 data-i="h2">Cooldown shield</h3><p>Donors who gave blood in the last 90 days are never alerted.</p></div>
+    <div style="--i:2"><h3 data-i="h3">Private by default</h3><p>Numbers stay masked until a real emergency request is raised.</p></div>
   </div>
-  <p class="note glass">India's yearly blood shortfall is estimated at 1 to 4 million units depending on the source (Ministry of Health data via Outlook India, Medical Dialogues).</p>
+  <p class="note">India's yearly blood shortfall is estimated at 1 to 4 million units depending on the source (Ministry of Health data via Outlook India, Medical Dialogues).</p>
 </section>
 
 <section id="radar" class="tab">
-  <div class="glass panel">
+  <div class="panel">
     <div class="chips" id="chips" aria-label="Blood group needed"></div>
     <label>Radius <b id="rv">15</b> km <input type="range" id="rad" min="3" max="60" value="15"></label>
-    <button id="loc" class="ghost">Use my location</button>
+    <div class="row"><button id="loc" class="ghost">Use my location</button><button id="askBtn" class="go slim">Request this blood group</button></div>
     <div id="shield" class="shield">Pick a blood group to scan.</div>
   </div>
   <div id="map"></div>
@@ -53,7 +58,7 @@
 </section>
 
 <section id="join" class="tab">
-  <form id="reg" class="glass form">
+  <form id="reg" class="form">
     <div class="seg"><button type="button" class="on" data-kind="donor">Hero volunteer</button><button type="button" data-kind="hospital">Hospital or blood bank</button></div>
     <input id="name" placeholder="Full name or hospital name" required maxlength="60" autocomplete="name">
     <select id="rg" class="gsel" aria-label="Blood group"></select>
@@ -65,17 +70,18 @@
     <div class="row"><input id="otp" placeholder="4-digit OTP" inputmode="numeric" maxlength="4"><button type="button" id="sendOtp" class="ghost">Send OTP</button></div>
     <button class="go">Generate digital pass</button>
   </form>
-  <div id="pass" class="pass glass"></div>
+  <div id="pass" class="pass"></div>
 </section>
 </main>
 
-<div id="modal" class="modal"><div class="glass box">
+<div id="modal" class="modal"><div class="box">
   <button class="x" id="closeM" aria-label="Close">&times;</button>
   <h2>Emergency request</h2>
   <form id="sosForm">
     <select id="sg" class="gsel" required aria-label="Blood group needed"></select>
     <input id="su" type="number" min="1" max="10" value="1" aria-label="Units needed">
     <input id="sp" placeholder="Patient name" maxlength="40">
+    <input id="sh" placeholder="Hospital and area" maxlength="60">
     <input id="sc" placeholder="Your contact number" inputmode="numeric" maxlength="10" required>
     <button class="go">Find and alert donors</button>
   </form>
@@ -88,27 +94,39 @@
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const G=["A+","A-","B+","B-","AB+","AB-","O+","O-"];
 const AREAS={"Chennai Central":[13.0827,80.2707],"Anna Nagar":[13.085,80.2101],"Avadi":[13.1067,80.097],"Ambattur":[13.1143,80.1548],"Tambaram":[12.9249,80.1],"Velachery":[12.9815,80.218],"Tiruvallur":[13.1431,79.9086],"Kanchipuram":[12.8342,79.7036]};
-const TA={nav1:"முகப்பு",nav2:"நேரடி ரேடார்",nav3:"இணையுங்கள்",tag:"கடினமான நேரங்களில் உங்கள் தோழன்",sos:"அவசர இரத்தம் தேவை",s1:"தன்னார்வ நாயகர்கள்",s2:"இரத்த வங்கிகள்",s3:"இன்று தகுதியானவர்கள்",s4:"அவசர கோரிக்கைகள்",h1:"சரிபார்க்கப்பட்ட பதிவு",h2:"பாதுகாப்பு கவசம்",h3:"ஒரே தட்டலில் அலர்ட்"};
-let lang="en",me={lat:13.0827,lng:80.2707},grp="O+",kind="donor",map,layer;
+const TA={nav1:"முகப்பு",nav2:"நேரடி ரேடார்",nav3:"இணையுங்கள்",tag:"கடினமான நேரங்களில் உங்கள் தோழன்",sos:"அவசர இரத்தம் தேவை",s1:"தன்னார்வ நாயகர்கள்",s2:"இரத்த வங்கிகள்",s3:"இன்று தகுதியானவர்கள்",s4:"திறந்த கோரிக்கைகள்",bt:"நேரடி அவசர கோரிக்கைகள்",h1:"சரிபார்க்கப்பட்ட பதிவு",h2:"பாதுகாப்பு கவசம்",h3:"இயல்பாகவே தனியுரிமை"};
+let lang="en",me={lat:13.0827,lng:80.2707},grp="O+",kind="donor",map,layer,lastReq,synced=Date.now();
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const api=(u,o)=>fetch(u,o&&{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(o)}).then(async r=>{const j=await r.json();if(!r.ok)throw Error(j.error||"Something went wrong");return j});
 const toast=(m,bad)=>{const t=$("#toast");t.textContent=m;t.className="show"+(bad?" bad":"");clearTimeout(toast.t);toast.t=setTimeout(()=>t.className="",3800)};
+const ago=m=>m<1?"just now":m<60?m+" min ago":Math.round(m/60)+" h ago";
+const shareMsg=r=>`URGENT: ${r.units} unit(s) of ${r.grp} blood needed for ${r.patient}${r.hospital?" at "+r.hospital:""}. Help on Donor++: ${location.origin}`;
+function burst(){for(let i=0;i<28;i++){const s=document.createElement("span");s.className="fx";s.textContent=["🩸","❤️","✚"][i%3];s.style.cssText=`left:${Math.random()*100}vw;animation-delay:${Math.random()*.6}s;font-size:${16+Math.random()*16}px`;document.body.append(s);setTimeout(()=>s.remove(),2800)}}
+async function openLater(p){const w=window.open("","_blank");try{const d=await p;w?w.location.href=d.wa:location.href=d.wa;return d}catch(e){w&&w.close();throw e}}
 
 $$("[data-i]").forEach(e=>e.dataset.en=e.textContent);
 $("#lang").onclick=()=>{lang=lang=="en"?"ta":"en";$("#lang").textContent=lang=="en"?"தமிழ்":"English";$$("[data-i]").forEach(e=>e.textContent=lang=="ta"&&TA[e.dataset.i]||e.dataset.en)};
-
 $$(".gsel").forEach(s=>s.innerHTML='<option value="">Blood group</option>'+G.map(g=>`<option>${g}</option>`).join(""));
 $("#area").innerHTML=Object.keys(AREAS).map(a=>`<option>${a}</option>`).join("");
 $("#area").onchange=()=>{const[la,lo]=AREAS[$("#area").value];me={lat:la,lng:lo}};
 $("#chips").innerHTML=G.map(g=>`<button class="${g==grp?"on":""}">${g}</button>`).join("");
-$("#chips").onclick=e=>{if(e.target.tagName!="BUTTON")return;grp=e.target.textContent;$$("#chips button").forEach(b=>b.classList.toggle("on",b==e.target));search()};
+$("#chips").onclick=e=>{if(e.target.tagName!="BUTTON")return;grp=e.target.textContent;$$("#chips button").forEach(b=>b.classList.toggle("on",b==e.target));search(true)};
 $("#rad").oninput=e=>$("#rv").textContent=e.target.value;
-$("#rad").onchange=()=>search();
+$("#rad").onchange=()=>search(true);
+setInterval(()=>{const s=Math.round((Date.now()-synced)/1000);$("#sync").textContent="Live · "+(s<5?"just now":s+"s ago")},1000);
 
-function count(e,to){const t0=performance.now();(function f(t){const p=Math.min((t-t0)/900,1);e.textContent=Math.round(to*p);if(p<1)requestAnimationFrame(f)})(t0)}
-async function stats(){try{const s=await api("/api/stats");$$("[data-n]").forEach(e=>count(e,s[e.dataset.n]))}catch(e){}}
+function count(e,to,from){const t0=performance.now();(function f(t){const p=Math.min((t-t0)/900,1);e.textContent=Math.round(from+(to-from)*p);if(p<1)requestAnimationFrame(f)})(t0)}
+async function stats(){try{const s=await api("/api/stats");$$("[data-n]").forEach(e=>{const to=s[e.dataset.n];if(e.dataset.v!=to){count(e,to,+e.dataset.v||0);e.dataset.v=to}});synced=Date.now()}catch(e){}}
+async function board(){
+  try{
+    const d=await api(`/api/requests?lat=${me.lat}&lng=${me.lng}`);
+    $("#board").innerHTML=d.requests.map((r,i)=>`<div class="card" style="--i:${i}"><div class="bt">${esc(r.grp)}</div><div><b>${r.units} unit${r.units>1?"s":""} for ${esc(r.patient)}</b><small>${esc(r.hospital||"Location shared")} · ${r.km} km · ${ago(r.ago)} · ${r.responders} responding</small></div><div class="acts"><button class="wa" data-r="${r.id}">I can donate</button><a class="shr" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(shareMsg(r))}">Share</a></div></div>`).join("")||'<p class="empty">No open requests right now.</p>';
+    synced=Date.now();
+  }catch(e){}
+}
+$("#board").onclick=async e=>{const b=e.target.closest("[data-r]");if(!b)return;try{await openLater(api("/api/respond",{id:+b.dataset.r}));toast("Thank you. The family is waiting for your message.");board()}catch(x){toast(x.message,1)}};
 
-function go(id){$$("nav button").forEach(b=>b.classList.toggle("on",b.dataset.tab==id));$$(".tab").forEach(s=>s.classList.toggle("on",s.id==id));if(id=="radar"){initMap();search()}if(id=="home")stats()}
+function go(id){$$("nav button").forEach(b=>b.classList.toggle("on",b.dataset.tab==id));$$(".tab").forEach(s=>s.classList.toggle("on",s.id==id));if(id=="radar"){initMap();search(true)}if(id=="home"){stats();board()}}
 $$("nav button").forEach(b=>b.onclick=()=>go(b.dataset.tab));
 
 function initMap(){
@@ -116,29 +134,34 @@ function initMap(){
   if(!window.L){$("#map").textContent="The map needs an internet connection.";return}
   map=L.map("map",{zoomControl:false}).setView([me.lat,me.lng],11);
   L.control.zoom({position:"bottomright"}).addTo(map);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{attribution:"&copy; OpenStreetMap &copy; CARTO",maxZoom:19}).addTo(map);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"&copy; OpenStreetMap contributors",maxZoom:19}).addTo(map);
   layer=L.layerGroup().addTo(map);
 }
 function locate(cb){
   if(!navigator.geolocation)return toast("GPS is unavailable, using the selected area",1);
   navigator.geolocation.getCurrentPosition(p=>{me={lat:p.coords.latitude,lng:p.coords.longitude};toast("Location locked");cb&&cb()},()=>toast("GPS was blocked, using the selected area",1),{timeout:8000});
 }
-$("#loc").onclick=()=>locate(search);
+$("#loc").onclick=()=>locate(()=>search(true));
 $("#gps2").onclick=()=>locate();
+$("#askBtn").onclick=()=>openSOS(grp);
 
-const card=x=>`<div class="card glass"><div class="bt ${x.kind}">${x.kind=="donor"?esc(x.grp):"Bank"}</div><div><b>${esc(x.name)}</b><small>${x.kind=="donor"?(x.exact?"Exact match":"Compatible"):"Hospital or blood bank"} · ${x.phone}</small></div><span class="km">${x.km} km</span></div>`;
-async function search(){
+const pin=c=>L.divIcon({className:"",html:`<i class="pin ${c}"></i>`,iconSize:[26,26],iconAnchor:[13,26],popupAnchor:[0,-24]});
+const card=(x,i)=>`<div class="card" style="--i:${i}"><div class="bt ${x.kind}">${x.kind=="donor"?esc(x.grp):"Bank"}</div><div><b>${esc(x.name)}</b><small>${x.kind=="donor"?(x.exact?"Exact match":"Compatible"):"Hospital or blood bank"} · ${x.phone}</small></div><span class="km">${x.km} km</span></div>`;
+async function search(fit){
+  if(fit)$("#list").innerHTML='<div class="skel"></div><div class="skel"></div><div class="skel"></div>';
   try{
     const d=await api(`/api/search?group=${encodeURIComponent(grp)}&lat=${me.lat}&lng=${me.lng}&radius=${$("#rad").value}`);
     $("#shield").innerHTML=`Cooldown shield: <b>${d.hidden}</b> recent donors hidden. Compatible groups: ${d.compatible.join(", ")}`;
     $("#list").innerHTML=d.results.map(card).join("")||'<p class="empty">No donors in range. Widen the radius.</p>';
+    synced=Date.now();
     if(!map)return;
     layer.clearLayers();
-    L.circle([me.lat,me.lng],{radius:$("#rad").value*1000,color:"#00e5ff",weight:1,fillOpacity:.05}).addTo(layer);
-    L.marker([me.lat,me.lng],{icon:L.divIcon({className:"me",iconSize:[18,18]})}).addTo(layer);
-    d.results.forEach(x=>L.circleMarker([x.lat,x.lng],{radius:9,color:x.kind=="donor"?"#ff2d55":"#00e5ff",fillOpacity:.8}).bindPopup(`<b>${esc(x.name)}</b><br>${esc(x.grp)} · ${x.km} km`).addTo(layer));
-    map.fitBounds(L.latLngBounds([[me.lat,me.lng],...d.results.map(x=>[x.lat,x.lng])]),{padding:[40,40],maxZoom:13});
-  }catch(e){toast(e.message,1)}
+    const ring=L.circle([me.lat,me.lng],{radius:$("#rad").value*1000,color:"#e11d2e",weight:1.5,fillOpacity:.06}).addTo(layer);
+    L.marker([me.lat,me.lng],{icon:L.divIcon({className:"",html:'<i class="me"></i>',iconSize:[18,18]})}).addTo(layer);
+    const b=ring.getBounds();
+    d.results.forEach(x=>{b.extend([x.lat,x.lng]);L.marker([x.lat,x.lng],{icon:pin(x.kind)}).bindPopup(`<b>${esc(x.name)}</b><br>${esc(x.grp=="ALL"?"All groups":x.grp)} · ${x.km} km`).addTo(layer)});
+    if(fit)map.fitBounds(b,{padding:[30,30],maxZoom:14});
+  }catch(e){fit&&toast(e.message,1)}
 }
 
 $$(".seg button").forEach(b=>b.onclick=()=>{kind=b.dataset.kind;$$(".seg button").forEach(x=>x.classList.toggle("on",x==b));$("#rg").style.display=$("#ldw").style.display=kind=="donor"?"":"none"});
@@ -149,21 +172,33 @@ $("#reg").onsubmit=async e=>{
     const name=$("#name").value;
     const d=await api("/api/register",{kind,name,group:$("#rg").value,phone:$("#ph").value,otp:$("#otp").value,last_donation:$("#ld").value,lat:me.lat,lng:me.lng});
     $("#pass").innerHTML=`<small>${d.kind=="donor"?"Verified donor pass":"Verified partner pass"}</small><div class="big">${d.grp=="ALL"?"Bank":esc(d.grp)}</div><b>${esc(name)}</b><p>${d.pass_id} · ${d.wait?`Eligible in ${d.wait} days`:"Active and eligible"}</p>`;
-    $("#pass").classList.add("show");toast("You are in the network");e.target.reset();
+    $("#pass").classList.add("show");toast("You are in the network");burst();stats();e.target.reset();
   }catch(x){toast(x.message,1)}
 };
 
-$("#sosBtn").onclick=()=>{$("#modal").classList.add("show");locate()};
-$("#closeM").onclick=()=>$("#modal").classList.remove("show");
+function openSOS(g){$("#modal").classList.add("show");$("#sosOut").innerHTML="";$("#sosForm").style.display="";if(g)$("#sg").value=g;locate()}
+$("#sosBtn").onclick=()=>openSOS();
+const closeM=()=>$("#modal").classList.remove("show");
+$("#closeM").onclick=closeM;
+document.addEventListener("keydown",e=>e.key=="Escape"&&closeM());
 $("#sosForm").onsubmit=async e=>{
   e.preventDefault();
   try{
-    const d=await api("/api/request",{group:$("#sg").value,units:$("#su").value,patient:$("#sp").value,contact:$("#sc").value,lat:me.lat,lng:me.lng});
-    $("#sosOut").innerHTML=`<p class="shield">${d.matches.length} matches found. ${d.hidden} donors hidden by the cooldown shield.</p>`+(d.matches.map(x=>`<div class="card glass"><div class="bt ${x.kind}">${x.kind=="donor"?esc(x.grp):"Bank"}</div><div><b>${esc(x.name)}</b><small>${x.km} km away</small></div><a class="wa" target="_blank" rel="noopener" href="${x.wa}">Alert</a></div>`).join("")||'<p class="empty">No match in range yet. Try a wider area.</p>');
-    stats();
+    const q={group:$("#sg").value,units:$("#su").value,patient:$("#sp").value||"a patient",hospital:$("#sh").value,contact:$("#sc").value};
+    const d=await api("/api/request",{...q,lat:me.lat,lng:me.lng});
+    lastReq={id:d.id,contact:q.contact};
+    $("#sosForm").style.display="none";
+    $("#sosOut").innerHTML=`<p class="shield">${d.matches.length} matches found. ${d.hidden} donors hidden by the cooldown shield.</p><a class="wa big" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(shareMsg({units:q.units,grp:q.group,patient:q.patient,hospital:q.hospital}))}">Share in WhatsApp groups</a>`+(d.matches.map((x,i)=>`<div class="card" style="--i:${i}"><div class="bt ${x.kind}">${x.kind=="donor"?esc(x.grp):"Bank"}</div><div><b>${esc(x.name)}</b><small>${x.km} km away</small></div><a class="wa" data-al="1" target="_blank" rel="noopener" href="${x.wa}">Alert</a></div>`).join("")||'<p class="empty">No match in range yet. Share the request instead.</p>')+'<button class="ghost" id="done">Mark as fulfilled</button>';
+    stats();board();
   }catch(x){toast(x.message,1)}
 };
-stats();setInterval(stats,30000);
+$("#sosOut").onclick=async e=>{
+  const a=e.target.closest("[data-al]");
+  if(a){a.classList.add("sent");a.textContent="Alerted ✓"}
+  if(e.target.id=="done"){try{await api("/api/fulfill",lastReq);toast("Marked fulfilled. Thank you!");closeM();burst();stats();board()}catch(x){toast(x.message,1)}}
+};
+stats();board();
+setInterval(()=>{if(document.hidden)return;stats();board();if($("#radar").classList.contains("on"))search(false)},15000);
 </script>
 </body>
 </html>

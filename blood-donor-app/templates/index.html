@@ -167,7 +167,11 @@ function initMap(){
   if(!window.L){$("#map").textContent="The map needs an internet connection.";return}
   map=L.map("map",{zoomControl:false}).setView([S.me.lat,S.me.lng],11);
   L.control.zoom({position:"bottomright"}).addTo(map);
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"&copy; OpenStreetMap contributors",maxZoom:19}).addTo(map);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd'
+}).addTo(map);
   layer=L.layerGroup().addTo(map);
 }
 $("#chips").innerHTML=G.map(g=>`<button class="${g==S.grp?"on":""}">${g}</button>`).join("");

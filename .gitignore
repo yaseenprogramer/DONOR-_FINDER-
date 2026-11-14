@@ -1,16 +1,2 @@
-# Python bytecode and cache
+*.db
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Virtual environments
-venv/
-env/
-ENV/
-
-# Local SQLite database (let Render generate its own fresh instance)
-donors.db
-
-# Environment variables / secrets
-.env

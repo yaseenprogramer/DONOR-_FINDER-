@@ -2,219 +2,260 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>DONOR FINDER++ | Find blood donors, camps and send SOS</title>
 <meta name="description" content="DONOR FINDER++ connects blood donors, hospitals and community blood camps near you.">
-<meta name="theme-color" content="#2a0610">
+<meta name="theme-color" content="#d90429">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&family=Noto+Sans+Tamil:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Telugu:wght@400;600;700&family=Noto+Sans+Kannada:wght@400;600;700&family=Noto+Sans+Malayalam:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Telugu:wght@400;600;700&family=Noto+Sans+Kannada:wght@400;600;700&family=Noto+Sans+Malayalam:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 
-<!-- Pre-donation advisory -->
-<div class="advisory" role="note">
-  <span class="adv-ic">&#9877;</span>
-  <span data-i18n="advisory">Before donating, your eligibility must be checked at the hospital.</span>
-  <button class="link-btn" type="button" onclick="openModal('m-elig')">Quick self-check</button>
+<!-- floating blood cells (decoration) -->
+<div class="bgfx" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+
+<!-- icon sprite -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+    <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 2.5S5 10 5 14.5a7 7 0 0 0 14 0C19 10 12 2.5 12 2.5z"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></symbol>
+    <symbol id="i-gps" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 5.6a5.2 5.2 0 0 0-7.4 0L12 7l-1.4-1.4a5.2 5.2 0 0 0-7.4 7.4L12 21.8l8.8-8.8a5.2 5.2 0 0 0 0-7.4z"/></symbol>
+  </defs>
+</svg>
+
+<!-- Bottom tab bar (mobile) / side rail (desktop) -->
+<nav class="tabbar" aria-label="Main">
+  <button class="nt on" type="button" data-go="home"><span class="nt-i"><svg class="ic"><use href="#i-home"/></svg></span><span class="nt-l" data-i18n="tab_home">Home</span></button>
+  <button class="nt" type="button" data-go="find"><span class="nt-i"><svg class="ic"><use href="#i-pin"/></svg></span><span class="nt-l" data-i18n="tab_find">Find</span></button>
+  <button class="nt sos" type="button" data-go="sos"><span class="nt-i"><svg class="ic fill"><use href="#i-drop"/></svg></span><span class="nt-l" data-i18n="tab_sos">SOS</span></button>
+  <button class="nt" type="button" data-go="camps"><span class="nt-i"><svg class="ic"><use href="#i-cal"/></svg></span><span class="nt-l" data-i18n="tab_camps">Camps</span></button>
+  <button class="nt" type="button" data-go="rank"><span class="nt-i"><svg class="ic"><use href="#i-trophy"/></svg></span><span class="nt-l" data-i18n="tab_rank">Rank</span></button>
+  <button class="nt" type="button" data-go="me"><span class="nt-i"><svg class="ic"><use href="#i-user"/></svg></span><span class="nt-l" data-i18n="tab_me">Me</span></button>
+</nav>
+
+<div class="shell">
+
+  <div class="advisory" role="note">
+    <svg class="ic sm"><use href="#i-heart"/></svg>
+    <span data-i18n="advisory">Before donating, your eligibility must be checked at the hospital.</span>
+    <button class="link-btn" type="button" onclick="openModal('m-elig')">Quick self-check</button>
+  </div>
+
+  <header class="top">
+    <a class="brand" href="#home" onclick="go('home');return false;" aria-label="DONOR FINDER++ home">
+      <span class="logo" aria-hidden="true"><svg class="ic fill"><use href="#i-drop"/></svg></span>
+      <span class="brand-t">DONOR FINDER<b>++</b></span>
+    </a>
+    <div class="top-r">
+      <select id="langSel" aria-label="Language" onchange="setLang(this.value)">
+        <option value="en">English</option>
+        <option value="ta">தமிழ்</option>
+        <option value="hi">हिन्दी</option>
+        <option value="te">తెలుగు</option>
+        <option value="kn">ಕನ್ನಡ</option>
+        <option value="ml">മലയാളം</option>
+      </select>
+      <button class="icon-btn" id="gpsBtn" type="button" onclick="syncGps()" aria-label="Sync live GPS" title="Sync live GPS"><svg class="ic"><use href="#i-gps"/></svg></button>
+      <div id="authArea" class="auth-area"></div>
+    </div>
+  </header>
+
+  <main class="stage">
+
+    <!-- ================= HOME ================= -->
+    <section class="screen on" id="s-home">
+      <div class="hero">
+        <div class="hero-drop" aria-hidden="true"><svg class="ic fill"><use href="#i-drop"/></svg></div>
+        <p class="eyebrow" id="greet">Welcome to DONOR FINDER++</p>
+        <h1 data-i18n="hero_title">One drop of blood, one life saved.</h1>
+        <p class="lead" data-i18n="hero_sub">Find blood donors and blood camps near you in seconds, and raise an emergency alert when every minute counts.</p>
+        <div class="cta">
+          <button class="btn light" type="button" onclick="go('find')"><svg class="ic sm"><use href="#i-pin"/></svg><span data-i18n="hero_cta1">Find a Donor</span></button>
+          <button class="btn sosb" type="button" onclick="go('sos')"><svg class="ic sm fill"><use href="#i-drop"/></svg><span data-i18n="hero_cta2">Emergency SOS</span></button>
+        </div>
+        <svg class="ecg" viewBox="0 0 600 80" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M0 40H120L140 40L155 10L175 70L195 25L210 40H340L360 40L375 12L395 68L415 28L430 40H600"/></svg>
+      </div>
+
+      <div class="ticker" aria-live="polite">
+        <div class="tk rise" style="--i:0"><b id="tkLives">0</b><span>Lives touched<small>est. 3 per donation</small></span></div>
+        <div class="tk rise" style="--i:1"><b id="tkDon">0</b><span>Donations logged</span></div>
+        <div class="tk rise" style="--i:2"><b id="tkActive">0</b><span>Active donors</span></div>
+        <div class="tk rise" style="--i:3"><b id="tkRare">0</b><span>Rare-group donors</span></div>
+        <div class="tk rise" style="--i:4"><b id="tkSms">0</b><span>SOS alerts sent</span></div>
+      </div>
+      <p class="fine">Counters show real activity on this site only. They start at zero and grow as people use it.</p>
+
+      <div class="tiles">
+        <button class="tile rise" style="--i:0" type="button" onclick="go('find')"><span class="tile-i"><svg class="ic"><use href="#i-pin"/></svg></span><b>Find donors</b><small>Map and list</small></button>
+        <button class="tile rise" style="--i:1" type="button" onclick="go('sos')"><span class="tile-i hot"><svg class="ic fill"><use href="#i-drop"/></svg></span><b>Send SOS</b><small>Alert nearby donors</small></button>
+        <button class="tile rise" style="--i:2" type="button" onclick="go('camps')"><span class="tile-i"><svg class="ic"><use href="#i-cal"/></svg></span><b>Blood camps</b><small>Near you</small></button>
+        <button class="tile rise" style="--i:3" type="button" onclick="go('rank')"><span class="tile-i"><svg class="ic"><use href="#i-trophy"/></svg></span><b>Pulse Pantheon</b><small>Leaderboard</small></button>
+        <button class="tile rise" style="--i:4" type="button" onclick="go('me')"><span class="tile-i"><svg class="ic"><use href="#i-user"/></svg></span><b>My donor pass</b><small>QR verified ID</small></button>
+        <button class="tile rise" style="--i:5" type="button" onclick="openModal('m-elig')"><span class="tile-i"><svg class="ic"><use href="#i-heart"/></svg></span><b>Am I eligible?</b><small>Self-check</small></button>
+      </div>
+
+      <div class="block-h"><h2>Camps coming up</h2><button class="link-btn" type="button" onclick="go('camps')">See all</button></div>
+      <div id="homeCamps" class="grid"><div class="skel"></div><div class="skel"></div></div>
+
+      <div class="block-h"><h2 data-i18n="sec_match">Blood Compatibility Matcher</h2></div>
+      <div class="card matcher">
+        <div class="row">
+          <label>Blood group<select id="mBg" onchange="renderMatch()"></select></label>
+          <label>Mode
+            <select id="mMode" onchange="renderMatch()">
+              <option value="need">I need blood (who can donate to me)</option>
+              <option value="give">I can donate (who can I help)</option>
+            </select>
+          </label>
+        </div>
+        <div id="mOut" class="chips"></div>
+        <p class="fine">Rare phenotypes such as Bombay (Oh), Rh-null, Kell- and Duffy- can only receive blood from the same phenotype. A hospital must always cross-match before transfusion.</p>
+      </div>
+
+      <div class="gallery">
+        <!-- Add your own photos to the static folder: photo-1.jpg, photo-2.jpg, photo-3.jpg -->
+        <figure><img src="/static/photo-1.jpg" alt="Blood donation" loading="lazy" onerror="this.parentElement.remove()"></figure>
+        <figure><img src="/static/photo-2.jpg" alt="Volunteers at a blood camp" loading="lazy" onerror="this.parentElement.remove()"></figure>
+        <figure><img src="/static/photo-3.jpg" alt="Donor with a certificate" loading="lazy" onerror="this.parentElement.remove()"></figure>
+      </div>
+    </section>
+
+    <!-- ================= FIND + MAP ================= -->
+    <section class="screen" id="s-find">
+      <div class="block-h first"><h2 data-i18n="sec_find">Donors Near You</h2></div>
+      <div class="filters card">
+        <label>Blood needed<select id="fBg" onchange="applyFilter()"></select></label>
+        <label>City<input id="fCity" list="cityList" placeholder="e.g. Chennai" oninput="applyFilter()"></label>
+        <label class="chk"><input type="checkbox" id="fElig" onchange="applyFilter()"> Eligible to donate now</label>
+      </div>
+      <div class="pills" id="rarePills" aria-label="Rare blood groups"></div>
+
+      <div class="find-grid">
+        <div class="map-col">
+          <div class="layers" id="layerChips">
+            <button type="button" class="lchip on" data-l="donors"><i class="dot d"></i>Donors</button>
+            <button type="button" class="lchip on" data-l="camps"><i class="dot c"></i>Camps</button>
+            <button type="button" class="lchip on" data-l="sos"><i class="dot s"></i>SOS</button>
+            <button type="button" class="lchip" data-l="banks"><i class="dot b"></i>Hospitals &amp; blood banks</button>
+          </div>
+          <div class="map-wrap">
+            <div id="map" aria-label="Map of donors, camps and emergencies"></div>
+            <button class="map-loc" type="button" onclick="syncGps()" aria-label="Go to my location"><svg class="ic"><use href="#i-gps"/></svg></button>
+          </div>
+          <p class="fine">Map data &copy; OpenStreetMap contributors. Donors are shown by city only. Hospital and blood bank pins come from OpenStreetMap and may be incomplete, so call before travelling.</p>
+        </div>
+        <div class="list-col">
+          <div id="donorList" class="stack"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>
+          <p class="fine">Contact numbers are visible only to logged-in members. Exact home locations are never shown.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SOS ================= -->
+    <section class="screen" id="s-sos">
+      <div class="sos-banner">
+        <span class="sos-ring" aria-hidden="true"><svg class="ic fill"><use href="#i-drop"/></svg></span>
+        <div>
+          <h2 data-i18n="sec_sos">Emergency SOS Broadcast</h2>
+          <p>Alerts compatible, available donors within your radius. Identical requests are blocked for 12 hours so donors are not spammed.</p>
+        </div>
+      </div>
+      <div class="two">
+        <form id="sosForm" class="card form" novalidate>
+          <div class="row">
+            <label>Blood group needed<select id="sBg" required></select></label>
+            <label>Units<input id="sUnits" type="number" min="1" max="10" value="1"></label>
+          </div>
+          <label>Hospital name<input id="sHosp" maxlength="80" placeholder="e.g. Government General Hospital" required></label>
+          <div class="row">
+            <label>City<input id="sCity" list="cityList" maxlength="60" placeholder="City"></label>
+            <label>Alert radius (km)<input id="sRad" type="number" min="1" max="500" value="25"></label>
+          </div>
+          <div class="row">
+            <label>Contact mobile<input id="sContact" inputmode="numeric" maxlength="10" placeholder="10-digit number" required></label>
+            <label>Patient name (optional, not sent by SMS)<input id="sPatient" maxlength="60"></label>
+          </div>
+          <label>Note (optional)<input id="sNote" maxlength="200" placeholder="Ward, bed number, time needed"></label>
+          <label class="chk"><input type="checkbox" id="sGps" checked> Use my live GPS if synced</label>
+          <button class="btn alert big" type="submit" id="sosBtn"><svg class="ic sm fill"><use href="#i-drop"/></svg> Broadcast SOS</button>
+          <div id="sosResult" class="result" hidden></div>
+          <p class="fine">Misuse of SOS can cost real lives. Please send only genuine requests. You must be logged in, and you can send 3 alerts per hour.</p>
+        </form>
+        <div class="card">
+          <h3>Live SOS board <small>(last 48 hours)</small></h3>
+          <div id="sosFeed" class="feed"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= CAMPS ================= -->
+    <section class="screen" id="s-camps">
+      <div class="block-h first"><h2 data-i18n="sec_camps">Blood Camps Near Me</h2></div>
+      <p class="sub">Upcoming community blood drives, sorted by distance once you sync GPS. Anyone logged in can host a camp.</p>
+      <div class="cta left">
+        <button class="btn" type="button" onclick="openHost()"><svg class="ic sm"><use href="#i-plus"/></svg> Host a Camp</button>
+        <a class="btn ghost" target="_blank" rel="noopener" href="https://www.google.com/maps/search/blood+donation+camp+near+me">Camps on Google Maps</a>
+        <a class="btn ghost" target="_blank" rel="noopener" href="https://www.google.com/maps/search/blood+bank+near+me">Blood banks near me</a>
+        <a class="btn ghost" target="_blank" rel="noopener" href="https://eraktkosh.mohfw.gov.in/">e-RaktKosh (official)</a>
+      </div>
+      <div id="campList" class="grid"><div class="skel"></div><div class="skel"></div></div>
+      <p class="fine">Camps marked SAMPLE are demo entries. Camps added by members are not verified by us, so confirm with the organiser before travelling.</p>
+    </section>
+
+    <!-- ================= RANK ================= -->
+    <section class="screen" id="s-rank">
+      <div class="block-h first"><h2 data-i18n="sec_board">The Pulse Pantheon</h2></div>
+      <p class="sub">Hostels, departments, colleges and companies compete in a friendly drive to out-donate each other. Every logged donation earns <b>150 PulsePoints</b>.</p>
+      <div class="tabs scroll-x" id="boardTabs">
+        <button class="tab on" data-t="all">All Squads</button>
+        <button class="tab" data-t="Hostel">Hostels</button>
+        <button class="tab" data-t="Department">Departments</button>
+        <button class="tab" data-t="Corporate">Corporate</button>
+        <button class="tab" data-t="College">Colleges</button>
+        <button class="tab" data-t="Community">Communities</button>
+        <button class="tab" data-t="heroes">Top HemoHeroes</button>
+      </div>
+      <div id="boardOut" class="card board"></div>
+      <div class="ranks card">
+        <h3>Climb the ranks</h3>
+        <div class="rank-row">
+          <span>Pulse Pledger <small>0</small></span>
+          <span>Hemoglobin Herald <small>1+</small></span>
+          <span>Crimson Vanguard <small>2+</small></span>
+          <span>Arterial Paladin <small>5+</small></span>
+          <span>Apex Lifeblood <small>10+</small></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= ME ================= -->
+    <section class="screen" id="s-me">
+      <div class="block-h first"><h2 data-i18n="sec_pass">Digital Donor Pass</h2></div>
+      <p class="sub">Your verifiable donor ID. Anyone can scan the QR code to confirm it is genuine.</p>
+      <div id="passWrap"></div>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <div class="foot-in">
+      <b>DONOR FINDER++</b>
+      <p>A community tool, not a medical service. Donor eligibility, cross-matching and safety are always decided by the hospital or blood bank. In an emergency, call your local emergency number first.</p>
+      <p class="fine">Aadhaar numbers are never collected. If you upload an ID photo, cover the number first. Real Aadhaar verification needs a government-approved service.</p>
+    </div>
+  </footer>
 </div>
-
-<!-- Navigation -->
-<header class="nav">
-  <a class="brand" href="#top" aria-label="DONOR FINDER++ home">
-    <span class="drop" aria-hidden="true"></span>
-    <span class="brand-t">DONOR FINDER<b>++</b></span>
-  </a>
-  <nav class="links" aria-label="Sections">
-    <a href="#find" data-i18n="nav_find">Donors</a>
-    <a href="#sos" data-i18n="nav_sos">Emergency SOS</a>
-    <a href="#camps" data-i18n="nav_camps">Blood Camps</a>
-    <a href="#match" data-i18n="nav_match">Matcher</a>
-    <a href="#board" data-i18n="nav_board">Leaderboard</a>
-    <a href="#pass" data-i18n="nav_pass">My Pass</a>
-  </nav>
-  <div class="nav-right">
-    <select id="langSel" aria-label="Language" onchange="setLang(this.value)">
-      <option value="en">English</option>
-      <option value="ta">தமிழ்</option>
-      <option value="hi">हिन्दी</option>
-      <option value="te">తెలుగు</option>
-      <option value="kn">ಕನ್ನಡ</option>
-      <option value="ml">മലയാളം</option>
-    </select>
-    <button class="btn ghost sm" id="gpsBtn" type="button" onclick="syncGps()">&#9673; <span data-i18n="btn_gps">Sync Live GPS</span></button>
-    <div id="authArea" class="auth-area"></div>
-  </div>
-</header>
-
-<main id="top">
-
-<!-- Hero -->
-<section class="hero">
-  <div class="hero-copy">
-    <p class="eyebrow">Every drop has an address</p>
-    <h1 data-i18n="hero_title">One drop of blood, one life saved.</h1>
-    <p class="lead" data-i18n="hero_sub">Find blood donors and blood camps near you in seconds, and raise an emergency alert when every minute counts.</p>
-    <div class="cta">
-      <a class="btn" href="#find" data-i18n="hero_cta1">Find a Donor</a>
-      <a class="btn alert" href="#sos" data-i18n="hero_cta2">Emergency SOS</a>
-      <button class="btn ghost" type="button" id="logBtn" onclick="openLog()">I Donated &mdash; Log It</button>
-    </div>
-    <div class="ticker" aria-live="polite">
-      <div class="tk"><b id="tkLives">0</b><span>Lives touched<small>est. 3 per donation</small></span></div>
-      <div class="tk"><b id="tkDon">0</b><span>Donations logged</span></div>
-      <div class="tk"><b id="tkActive">0</b><span>Active donors</span></div>
-      <div class="tk"><b id="tkRare">0</b><span>Rare-group donors</span></div>
-      <div class="tk"><b id="tkSms">0</b><span>SOS alerts sent</span></div>
-    </div>
-    <p class="fine">Counters show real activity on this site only. They start at zero and grow as people use it.</p>
-  </div>
-  <div class="hero-photos">
-    <!-- Put your own photos in the static folder: photo-1.jpg, photo-2.jpg, photo-3.jpg -->
-    <figure class="photo-slot p1"><img src="/static/photo-1.jpg" alt="Blood donation" loading="lazy" onerror="this.parentElement.remove()"></figure>
-    <figure class="photo-slot p2"><img src="/static/photo-2.jpg" alt="Volunteers at a blood camp" loading="lazy" onerror="this.parentElement.remove()"></figure>
-    <figure class="photo-slot p3"><img src="/static/photo-3.jpg" alt="Donor with a certificate" loading="lazy" onerror="this.parentElement.remove()"></figure>
-  </div>
-</section>
-
-<!-- Donor finder -->
-<section class="sec" id="find">
-  <div class="sec-h">
-    <h2 data-i18n="sec_find">Donors Near You</h2>
-    <p>Pick the blood group the patient needs. We list every compatible donor group.</p>
-  </div>
-  <div class="filters card">
-    <label>Blood needed
-      <select id="fBg" onchange="renderDonors()"></select>
-    </label>
-    <label>City
-      <input id="fCity" list="cityList" placeholder="e.g. Chennai" oninput="renderDonors()">
-    </label>
-    <label class="chk"><input type="checkbox" id="fElig" onchange="renderDonors()"> Eligible to donate now</label>
-  </div>
-  <div class="pills" id="rarePills" aria-label="Rare blood groups"></div>
-  <div id="donorList" class="grid"></div>
-  <p class="fine">Contact numbers are visible only to logged-in members. Exact home locations are never shown.</p>
-</section>
-
-<!-- Emergency SOS -->
-<section class="sec" id="sos">
-  <div class="sec-h">
-    <h2 data-i18n="sec_sos">Emergency SOS Broadcast</h2>
-    <p>Alerts compatible, available donors within your radius. Identical requests are blocked for 12 hours so donors are not spammed.</p>
-  </div>
-  <div class="two">
-    <form id="sosForm" class="card form" novalidate>
-      <div class="row">
-        <label>Blood group needed<select id="sBg" required></select></label>
-        <label>Units<input id="sUnits" type="number" min="1" max="10" value="1"></label>
-      </div>
-      <label>Hospital name<input id="sHosp" maxlength="80" placeholder="e.g. Government General Hospital" required></label>
-      <div class="row">
-        <label>City<input id="sCity" list="cityList" maxlength="60" placeholder="City"></label>
-        <label>Alert radius (km)<input id="sRad" type="number" min="1" max="500" value="25"></label>
-      </div>
-      <div class="row">
-        <label>Contact mobile<input id="sContact" inputmode="numeric" maxlength="10" placeholder="10-digit number" required></label>
-        <label>Patient name (optional, not sent by SMS)<input id="sPatient" maxlength="60"></label>
-      </div>
-      <label>Note (optional)<input id="sNote" maxlength="200" placeholder="Ward, bed number, time needed"></label>
-      <label class="chk"><input type="checkbox" id="sGps" checked> Use my live GPS if synced</label>
-      <button class="btn alert big" type="submit" id="sosBtn">&#9888; Broadcast SOS</button>
-      <div id="sosResult" class="result" hidden></div>
-      <p class="fine">Misuse of SOS can cost real lives. Please send only genuine requests. You must be logged in, and you can send 3 alerts per hour.</p>
-    </form>
-    <div class="card">
-      <h3>Live SOS board <small>(last 48 hours)</small></h3>
-      <div id="sosFeed" class="feed"></div>
-    </div>
-  </div>
-</section>
-
-<!-- Camps -->
-<section class="sec" id="camps">
-  <div class="sec-h">
-    <h2 data-i18n="sec_camps">Blood Camps Near Me</h2>
-    <p>Upcoming community blood drives, sorted by distance once you sync GPS. Anyone logged in can host a camp.</p>
-  </div>
-  <div class="cta left">
-    <button class="btn" type="button" onclick="openHost()">+ Host a Camp</button>
-    <a class="btn ghost" target="_blank" rel="noopener" href="https://www.google.com/maps/search/blood+donation+camp+near+me">Camps on Google Maps</a>
-    <a class="btn ghost" target="_blank" rel="noopener" href="https://www.google.com/maps/search/blood+bank+near+me">Blood banks near me</a>
-    <a class="btn ghost" target="_blank" rel="noopener" href="https://eraktkosh.mohfw.gov.in/">e-RaktKosh (official)</a>
-  </div>
-  <div id="campList" class="grid"></div>
-  <p class="fine">Camps marked SAMPLE are demo entries. Camps added by members are not verified by us, so confirm with the organiser before travelling.</p>
-</section>
-
-<!-- Compatibility -->
-<section class="sec" id="match">
-  <div class="sec-h">
-    <h2 data-i18n="sec_match">Blood Compatibility Matcher</h2>
-    <p>See who can give to whom, including Bombay (Oh) and other rare groups.</p>
-  </div>
-  <div class="card matcher">
-    <div class="row">
-      <label>Blood group<select id="mBg" onchange="renderMatch()"></select></label>
-      <label>Mode
-        <select id="mMode" onchange="renderMatch()">
-          <option value="need">I need blood (who can donate to me)</option>
-          <option value="give">I can donate (who can I help)</option>
-        </select>
-      </label>
-    </div>
-    <div id="mOut" class="chips"></div>
-    <p class="fine">Rare phenotypes such as Bombay (Oh), Rh-null, Kell- and Duffy- can only receive blood from the same phenotype. A hospital must always cross-match before transfusion.</p>
-  </div>
-</section>
-
-<!-- Leaderboard -->
-<section class="sec" id="board">
-  <div class="sec-h">
-    <h2 data-i18n="sec_board">The Pulse Pantheon</h2>
-    <p>Hostels, departments, colleges and companies compete in a friendly drive to out-donate each other. Every logged donation earns <b>150 PulsePoints</b>.</p>
-  </div>
-  <div class="tabs" id="boardTabs">
-    <button class="tab on" data-t="all">All Squads</button>
-    <button class="tab" data-t="Hostel">Hostels</button>
-    <button class="tab" data-t="Department">Departments</button>
-    <button class="tab" data-t="Corporate">Corporate</button>
-    <button class="tab" data-t="College">Colleges</button>
-    <button class="tab" data-t="Community">Communities</button>
-    <button class="tab" data-t="heroes">Top HemoHeroes</button>
-  </div>
-  <div id="boardOut" class="card board"></div>
-  <div class="ranks card">
-    <h3>Climb the ranks</h3>
-    <div class="rank-row">
-      <span>Pulse Pledger <small>0</small></span>
-      <span>Hemoglobin Herald <small>1+</small></span>
-      <span>Crimson Vanguard <small>2+</small></span>
-      <span>Arterial Paladin <small>5+</small></span>
-      <span>Apex Lifeblood <small>10+</small></span>
-    </div>
-  </div>
-</section>
-
-<!-- Donor Pass -->
-<section class="sec" id="pass">
-  <div class="sec-h">
-    <h2 data-i18n="sec_pass">Digital Donor Pass</h2>
-    <p>Your verifiable donor ID. Anyone can scan the QR code to confirm it is genuine.</p>
-  </div>
-  <div id="passWrap"></div>
-</section>
-
-</main>
-
-<footer class="foot">
-  <div class="foot-in">
-    <b>DONOR FINDER++</b>
-    <p>A community tool, not a medical service. Donor eligibility, cross-matching and safety are always decided by the hospital or blood bank. In an emergency, call your local emergency number first.</p>
-    <p class="fine">Aadhaar numbers are never collected. If you upload an ID photo, cover the number first. Real Aadhaar verification needs a government-approved service.</p>
-  </div>
-</footer>
 
 <datalist id="cityList"></datalist>
 
@@ -245,9 +286,7 @@
         <label>City<input id="rCity" list="cityList" maxlength="60"></label>
       </div>
       <div class="row">
-        <label>Joining as
-          <select id="rOrgType"></select>
-        </label>
+        <label>Joining as<select id="rOrgType"></select></label>
         <label>College / hostel / dept / company<input id="rOrg" maxlength="80" placeholder="For the leaderboard"></label>
       </div>
       <label class="chk"><input type="checkbox" id="rGps" checked> Use my approximate location (rounded, never shown publicly)</label>
@@ -309,9 +348,10 @@
         <label>Latitude (optional)<input id="hLat" inputmode="decimal"></label>
         <label>Longitude (optional)<input id="hLon" inputmode="decimal"></label>
       </div>
+      <button class="btn big" type="button" class="btn ghost" onclick="useGpsForCamp()" style="background:#fff;color:var(--red);border-color:var(--red);box-shadow:none">Use my GPS for latitude and longitude</button>
       <button class="btn big" type="submit">Publish camp</button>
       <p class="msg" id="hMsg"></p>
-      <p class="fine">If you skip latitude and longitude, the city centre is used for distance sorting.</p>
+      <p class="fine">If you skip latitude and longitude, the city centre is used for the map and distance sorting.</p>
     </form>
   </div>
 </div>
@@ -336,7 +376,7 @@
 </div>
 
 <!-- Voice assistant -->
-<button class="fab" id="vFab" type="button" aria-label="Voice assistant" onclick="toggleDock()">&#127908;</button>
+<button class="fab" id="vFab" type="button" aria-label="Voice assistant" onclick="toggleDock()"><svg class="ic"><use href="#i-mic"/></svg></button>
 <div class="dock" id="vDock" hidden>
   <div class="dock-h">
     <b>Voice assistant</b>
@@ -346,7 +386,7 @@
     </div>
     <button class="x sm" type="button" onclick="toggleDock()" aria-label="Close">&times;</button>
   </div>
-  <button class="mic" id="vMic" type="button" onclick="listen()" aria-label="Tap to speak">&#127908;</button>
+  <button class="mic" id="vMic" type="button" onclick="listen()" aria-label="Tap to speak"><svg class="ic"><use href="#i-mic"/></svg></button>
   <p class="heard" id="vHeard">Tap the mic and speak</p>
   <p class="say" id="vSay"></p>
   <form id="vForm" class="vform">
@@ -358,6 +398,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 "use strict";
@@ -366,6 +407,7 @@ const $ = s => document.querySelector(s);
 const $$ = s => Array.prototype.slice.call(document.querySelectorAll(s));
 const ESC = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ESC[c]);
+const stg = i => ' style="--i:' + Math.min(i, 12) + '"';
 
 function toast(m){
   const t = $('#toast'); t.textContent = m; t.classList.add('show');
@@ -400,16 +442,32 @@ function fmtDate(s){
   const d = new Date(s + 'T00:00:00');
   return isNaN(d) ? esc(s) : d.toLocaleDateString(undefined, {weekday:'short', day:'numeric', month:'short'});
 }
+function kmBetween(a, b, c, d){
+  const R = 6371, rad = x => x * Math.PI / 180, dp = rad(c - a), dl = rad(d - b);
+  const h = Math.sin(dp / 2) ** 2 + Math.cos(rad(a)) * Math.cos(rad(c)) * Math.sin(dl / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+/* button ripple */
+document.addEventListener('pointerdown', e => {
+  const b = e.target.closest('.btn,.tile'); if(!b) return;
+  const r = b.getBoundingClientRect(), s = document.createElement('span'), d = Math.max(r.width, r.height);
+  s.className = 'rip';
+  s.style.cssText = 'width:' + d + 'px;height:' + d + 'px;left:' + (e.clientX - r.left - d / 2) + 'px;top:' + (e.clientY - r.top - d / 2) + 'px';
+  b.appendChild(s); setTimeout(() => s.remove(), 650);
+});
 
 /* ============================== i18n ============================== */
 const T = {
-  en:{advisory:"Before donating, your eligibility must be checked at the hospital.",nav_find:"Donors",nav_sos:"Emergency SOS",nav_camps:"Blood Camps",nav_match:"Matcher",nav_board:"Leaderboard",nav_pass:"My Pass",hero_title:"One drop of blood, one life saved.",hero_sub:"Find blood donors and blood camps near you in seconds, and raise an emergency alert when every minute counts.",hero_cta1:"Find a Donor",hero_cta2:"Emergency SOS",sec_find:"Donors Near You",sec_sos:"Emergency SOS Broadcast",sec_camps:"Blood Camps Near Me",sec_match:"Blood Compatibility Matcher",sec_board:"The Pulse Pantheon",sec_pass:"Digital Donor Pass",btn_login:"Login",btn_register:"Register",btn_gps:"Sync Live GPS",btn_logout:"Logout"},
-  ta:{advisory:"தானம் செய்வதற்கு முன் உங்கள் தகுதி மருத்துவமனையில் பரிசோதிக்கப்பட வேண்டும்.",nav_find:"தானம் செய்பவர்கள்",nav_sos:"அவசர SOS",nav_camps:"ரத்த முகாம்கள்",nav_match:"பொருத்தம்",nav_board:"தரவரிசை",nav_pass:"என் அட்டை",hero_title:"ஒரு துளி ரத்தம், ஒரு உயிர்.",hero_sub:"அருகிலுள்ள ரத்த தானம் செய்பவர்களையும் முகாம்களையும் உடனடியாகக் கண்டறியுங்கள்.",hero_cta1:"தானம் செய்பவரைத் தேடு",hero_cta2:"அவசர SOS",sec_find:"அருகிலுள்ள தானம் செய்பவர்கள்",sec_sos:"அவசர SOS அறிவிப்பு",sec_camps:"அருகிலுள்ள ரத்த முகாம்கள்",sec_match:"ரத்த வகை பொருத்தம்",sec_board:"பல்ஸ் பாந்தியன்",sec_pass:"டிஜிட்டல் தானர் அட்டை",btn_login:"உள்நுழை",btn_register:"பதிவு செய்",btn_gps:"GPS இணை",btn_logout:"வெளியேறு"},
-  hi:{advisory:"रक्तदान से पहले आपकी पात्रता की जाँच अस्पताल में होनी चाहिए।",nav_find:"रक्तदाता",nav_sos:"आपातकालीन SOS",nav_camps:"रक्त शिविर",nav_match:"मिलान",nav_board:"लीडरबोर्ड",nav_pass:"मेरा पास",hero_title:"एक बूंद खून, एक ज़िंदगी।",hero_sub:"अपने पास के रक्तदाताओं और रक्तदान शिविरों को तुरंत खोजें।",hero_cta1:"दाता खोजें",hero_cta2:"आपातकालीन SOS",sec_find:"आपके पास के रक्तदाता",sec_sos:"आपातकालीन SOS प्रसारण",sec_camps:"आपके पास के रक्त शिविर",sec_match:"रक्त समूह मिलान",sec_board:"पल्स पैंथियन",sec_pass:"डिजिटल डोनर पास",btn_login:"लॉग इन",btn_register:"रजिस्टर",btn_gps:"GPS सिंक करें",btn_logout:"लॉग आउट"},
-  te:{advisory:"రక్తదానానికి ముందు మీ అర్హతను ఆసుపత్రిలో తనిఖీ చేయాలి.",nav_find:"దాతలు",nav_sos:"అత్యవసర SOS",nav_camps:"రక్త శిబిరాలు",nav_match:"సరిపోలిక",nav_board:"లీడర్‌బోర్డ్",nav_pass:"నా పాస్",hero_title:"ఒక రక్తపు చుక్క, ఒక ప్రాణం.",hero_sub:"మీ సమీపంలోని రక్తదాతలను, శిబిరాలను వెంటనే కనుగొనండి.",hero_cta1:"దాతను వెతకండి",hero_cta2:"అత్యవసర SOS",sec_find:"సమీప రక్తదాతలు",sec_sos:"అత్యవసర SOS ప్రసారం",sec_camps:"సమీప రక్త శిబిరాలు",sec_match:"రక్త గ్రూప్ సరిపోలిక",sec_board:"పల్స్ పాంథియన్",sec_pass:"డిజిటల్ డోనర్ పాస్",btn_login:"లాగిన్",btn_register:"నమోదు",btn_gps:"GPS సింక్",btn_logout:"లాగౌట్"},
-  kn:{advisory:"ರಕ್ತದಾನಕ್ಕೂ ಮುನ್ನ ನಿಮ್ಮ ಅರ್ಹತೆಯನ್ನು ಆಸ್ಪತ್ರೆಯಲ್ಲಿ ಪರಿಶೀಲಿಸಬೇಕು.",nav_find:"ದಾನಿಗಳು",nav_sos:"ತುರ್ತು SOS",nav_camps:"ರಕ್ತ ಶಿಬಿರಗಳು",nav_match:"ಹೊಂದಾಣಿಕೆ",nav_board:"ಲೀಡರ್‌ಬೋರ್ಡ್",nav_pass:"ನನ್ನ ಪಾಸ್",hero_title:"ಒಂದು ಹನಿ ರಕ್ತ, ಒಂದು ಜೀವ.",hero_sub:"ನಿಮ್ಮ ಹತ್ತಿರದ ರಕ್ತದಾನಿಗಳು ಮತ್ತು ಶಿಬಿರಗಳನ್ನು ತಕ್ಷಣ ಹುಡುಕಿ.",hero_cta1:"ದಾನಿಯನ್ನು ಹುಡುಕಿ",hero_cta2:"ತುರ್ತು SOS",sec_find:"ಹತ್ತಿರದ ರಕ್ತದಾನಿಗಳು",sec_sos:"ತುರ್ತು SOS ಪ್ರಸಾರ",sec_camps:"ಹತ್ತಿರದ ರಕ್ತ ಶಿಬಿರಗಳು",sec_match:"ರಕ್ತದ ಗುಂಪು ಹೊಂದಾಣಿಕೆ",sec_board:"ಪಲ್ಸ್ ಪ್ಯಾಂಥಿಯನ್",sec_pass:"ಡಿಜಿಟಲ್ ದಾನಿ ಪಾಸ್",btn_login:"ಲಾಗಿನ್",btn_register:"ನೋಂದಣಿ",btn_gps:"GPS ಸಿಂಕ್",btn_logout:"ಲಾಗೌಟ್"},
-  ml:{advisory:"രക്തദാനത്തിന് മുമ്പ് നിങ്ങളുടെ യോഗ്യത ആശുപത്രിയിൽ പരിശോധിക്കണം.",nav_find:"ദാതാക്കൾ",nav_sos:"അടിയന്തര SOS",nav_camps:"രക്ത ക്യാമ്പുകൾ",nav_match:"പൊരുത്തം",nav_board:"ലീഡർബോർഡ്",nav_pass:"എന്റെ പാസ്",hero_title:"ഒരു തുള്ളി രക്തം, ഒരു ജീവൻ.",hero_sub:"നിങ്ങളുടെ സമീപത്തെ രക്തദാതാക്കളെയും ക്യാമ്പുകളെയും ഉടൻ കണ്ടെത്തൂ.",hero_cta1:"ദാതാവിനെ തിരയുക",hero_cta2:"അടിയന്തര SOS",sec_find:"സമീപത്തെ രക്തദാതാക്കൾ",sec_sos:"അടിയന്തര SOS പ്രക്ഷേപണം",sec_camps:"സമീപത്തെ രക്ത ക്യാമ്പുകൾ",sec_match:"രക്തഗ്രൂപ്പ് പൊരുത്തം",sec_board:"പൾസ് പാന്തിയോൺ",sec_pass:"ഡിജിറ്റൽ ഡോണർ പാസ്",btn_login:"ലോഗിൻ",btn_register:"രജിസ്റ്റർ",btn_gps:"GPS സിങ്ക്",btn_logout:"ലോഗൗട്ട്"}
+  en:{advisory:"Before donating, your eligibility must be checked at the hospital.",tab_home:"Home",tab_find:"Find",tab_sos:"SOS",tab_camps:"Camps",tab_rank:"Rank",tab_me:"Me",hero_title:"One drop of blood, one life saved.",hero_sub:"Find blood donors and blood camps near you in seconds, and raise an emergency alert when every minute counts.",hero_cta1:"Find a Donor",hero_cta2:"Emergency SOS",sec_find:"Donors Near You",sec_sos:"Emergency SOS Broadcast",sec_camps:"Blood Camps Near Me",sec_match:"Blood Compatibility Matcher",sec_board:"The Pulse Pantheon",sec_pass:"Digital Donor Pass",btn_login:"Login",btn_register:"Register",btn_logout:"Logout"},
+  ta:{advisory:"தானம் செய்வதற்கு முன் உங்கள் தகுதி மருத்துவமனையில் பரிசோதிக்கப்பட வேண்டும்.",tab_home:"முகப்பு",tab_find:"தேடு",tab_sos:"SOS",tab_camps:"முகாம்",tab_rank:"தரவரிசை",tab_me:"நான்",hero_title:"ஒரு துளி ரத்தம், ஒரு உயிர்.",hero_sub:"அருகிலுள்ள ரத்த தானம் செய்பவர்களையும் முகாம்களையும் உடனடியாகக் கண்டறியுங்கள்.",hero_cta1:"தானம் செய்பவரைத் தேடு",hero_cta2:"அவசர SOS",sec_find:"அருகிலுள்ள தானம் செய்பவர்கள்",sec_sos:"அவசர SOS அறிவிப்பு",sec_camps:"அருகிலுள்ள ரத்த முகாம்கள்",sec_match:"ரத்த வகை பொருத்தம்",sec_board:"பல்ஸ் பாந்தியன்",sec_pass:"டிஜிட்டல் தானர் அட்டை",btn_login:"உள்நுழை",btn_register:"பதிவு செய்",btn_logout:"வெளியேறு"},
+  hi:{advisory:"रक्तदान से पहले आपकी पात्रता की जाँच अस्पताल में होनी चाहिए।",tab_home:"होम",tab_find:"खोजें",tab_sos:"SOS",tab_camps:"शिविर",tab_rank:"रैंक",tab_me:"मैं",hero_title:"एक बूंद खून, एक ज़िंदगी।",hero_sub:"अपने पास के रक्तदाताओं और रक्तदान शिविरों को तुरंत खोजें।",hero_cta1:"दाता खोजें",hero_cta2:"आपातकालीन SOS",sec_find:"आपके पास के रक्तदाता",sec_sos:"आपातकालीन SOS प्रसारण",sec_camps:"आपके पास के रक्त शिविर",sec_match:"रक्त समूह मिलान",sec_board:"पल्स पैंथियन",sec_pass:"डिजिटल डोनर पास",btn_login:"लॉग इन",btn_register:"रजिस्टर",btn_logout:"लॉग आउट"},
+  te:{advisory:"రక్తదానానికి ముందు మీ అర్హతను ఆసుపత్రిలో తనిఖీ చేయాలి.",tab_home:"హోమ్",tab_find:"వెతుకు",tab_sos:"SOS",tab_camps:"శిబిరాలు",tab_rank:"ర్యాంక్",tab_me:"నేను",hero_title:"ఒక రక్తపు చుక్క, ఒక ప్రాణం.",hero_sub:"మీ సమీపంలోని రక్తదాతలను, శిబిరాలను వెంటనే కనుగొనండి.",hero_cta1:"దాతను వెతకండి",hero_cta2:"అత్యవసర SOS",sec_find:"సమీప రక్తదాతలు",sec_sos:"అత్యవసర SOS ప్రసారం",sec_camps:"సమీప రక్త శిబిరాలు",sec_match:"రక్త గ్రూప్ సరిపోలిక",sec_board:"పల్స్ పాంథియన్",sec_pass:"డిజిటల్ డోనర్ పాస్",btn_login:"లాగిన్",btn_register:"నమోదు",btn_logout:"లాగౌట్"},
+  kn:{advisory:"ರಕ್ತದಾನಕ್ಕೂ ಮುನ್ನ ನಿಮ್ಮ ಅರ್ಹತೆಯನ್ನು ಆಸ್ಪತ್ರೆಯಲ್ಲಿ ಪರಿಶೀಲಿಸಬೇಕು.",tab_home:"ಮುಖಪುಟ",tab_find:"ಹುಡುಕಿ",tab_sos:"SOS",tab_camps:"ಶಿಬಿರ",tab_rank:"ರ‍್ಯಾಂಕ್",tab_me:"ನಾನು",hero_title:"ಒಂದು ಹನಿ ರಕ್ತ, ಒಂದು ಜೀವ.",hero_sub:"ನಿಮ್ಮ ಹತ್ತಿರದ ರಕ್ತದಾನಿಗಳು ಮತ್ತು ಶಿಬಿರಗಳನ್ನು ತಕ್ಷಣ ಹುಡುಕಿ.",hero_cta1:"ದಾನಿಯನ್ನು ಹುಡುಕಿ",hero_cta2:"ತುರ್ತು SOS",sec_find:"ಹತ್ತಿರದ ರಕ್ತದಾನಿಗಳು",sec_sos:"ತುರ್ತು SOS ಪ್ರಸಾರ",sec_camps:"ಹತ್ತಿರದ ರಕ್ತ ಶಿಬಿರಗಳು",sec_match:"ರಕ್ತದ ಗುಂಪು ಹೊಂದಾಣಿಕೆ",sec_board:"ಪಲ್ಸ್ ಪ್ಯಾಂಥಿಯನ್",sec_pass:"ಡಿಜಿಟಲ್ ದಾನಿ ಪಾಸ್",btn_login:"ಲಾಗಿನ್",btn_register:"ನೋಂದಣಿ",btn_logout:"ಲಾಗೌಟ್"},
+  ml:{advisory:"രക്തദാനത്തിന് മുമ്പ് നിങ്ങളുടെ യോഗ്യത ആശുപത്രിയിൽ പരിശോധിക്കണം.",tab_home:"ഹോം",tab_find:"തിരയുക",tab_sos:"SOS",tab_camps:"ക്യാമ്പ്",tab_rank:"റാങ്ക്",tab_me:"ഞാൻ",hero_title:"ഒരു തുള്ളി രക്തം, ഒരു ജീവൻ.",hero_sub:"നിങ്ങളുടെ സമീപത്തെ രക്തദാതാക്കളെയും ക്യാമ്പുകളെയും ഉടൻ കണ്ടെത്തൂ.",hero_cta1:"ദാതാവിനെ തിരയുക",hero_cta2:"അടിയന്തര SOS",sec_find:"സമീപത്തെ രക്തദാതാക്കൾ",sec_sos:"അടിയന്തര SOS പ്രക്ഷേപണം",sec_camps:"സമീപത്തെ രക്ത ക്യാമ്പുകൾ",sec_match:"രക്തഗ്രൂപ്പ് പൊരുത്തം",sec_board:"പൾസ് പാന്തിയോൺ",sec_pass:"ഡിജിറ്റൽ ഡോണർ പാസ്",btn_login:"ലോഗിൻ",btn_register:"രജിസ്റ്റർ",btn_logout:"ലോഗൗട്ട്"}
 };
+let LANG = 'en';
+try{ LANG = localStorage.getItem('df_lang') || 'en'; }catch(_e){}
 function applyLang(){
   const l = T[LANG] ? LANG : 'en';
   $$('[data-i18n]').forEach(el => {
@@ -418,8 +476,6 @@ function applyLang(){
     if(v) el.textContent = v;
   });
 }
-let LANG = 'en';
-try{ LANG = localStorage.getItem('df_lang') || 'en'; }catch(_e){}
 function setLang(l){
   if(!T[l]) l = 'en';
   LANG = l;
@@ -429,10 +485,37 @@ function setLang(l){
   applyLang();
 }
 
+/* ============================== screens ============================== */
+const SCREENS = ['home', 'find', 'sos', 'camps', 'rank', 'me'];
+const ALIAS = {board:'rank', pass:'me'};
+let cur = 'home';
+function go(n){
+  n = ALIAS[n] || n; if(SCREENS.indexOf(n) < 0) n = 'home';
+  $$('.tabbar .nt').forEach(t => { const on = t.getAttribute('data-go') === n; t.classList.toggle('on', on); });
+  const nw = $('#s-' + n), old = $('#s-' + cur);
+  if(n === cur && nw.classList.contains('on')){ afterShow(n); return; }
+  cur = n;
+  if(history.replaceState && location.hash !== '#' + n) history.replaceState(null, '', '#' + n);
+  const swap = () => {
+    $$('.screen').forEach(s => { if(s !== nw) s.classList.remove('on', 'out'); });
+    nw.classList.add('on'); window.scrollTo({top:0, behavior:'auto'}); afterShow(n);
+  };
+  if(old && old !== nw && old.classList.contains('on')){ old.classList.add('out'); setTimeout(swap, 170); }
+  else swap();
+}
+$$('.tabbar .nt').forEach(b => b.addEventListener('click', () => go(b.getAttribute('data-go'))));
+window.addEventListener('hashchange', () => go(location.hash.replace('#', '') || 'home'));
+function afterShow(n){
+  if(n === 'find'){
+    initMap();
+    setTimeout(() => { if(map){ map.invalidateSize(); wantFit = true; renderMap(); } }, 80);
+  }
+}
+
 /* ============================== state ============================== */
 const S = {me:null, donors:[], camps:[], sos:[], board:{orgs:[], heroes:[]}, metrics:{},
            groups:{standard:[], rare:[]}, compat:{}, orgTypes:[], cities:[], lat:null, lon:null};
-let boardTab = 'all';
+let boardTab = 'all', wantFit = true, flyMe = false;
 
 async function load(){
   let q = '';
@@ -470,19 +553,20 @@ function fillStatic(){
 }
 $('#rarePills').addEventListener('click', e => {
   const b = e.target.closest('.pill'); if(!b) return;
-  $('#fBg').value = b.getAttribute('data-g'); renderDonors();
+  $('#fBg').value = b.getAttribute('data-g'); applyFilter();
 });
+function applyFilter(){ wantFit = true; renderDonors(); }
 
 /* ============================== auth ============================== */
 function renderAuth(){
   const a = $('#authArea'), m = S.me;
   if(m){
-    a.innerHTML = '<a class="chip" href="#pass">' + esc(m.name.split(' ')[0]) + ' &middot; ' + esc(m.blood_group) + '</a>' +
-      '<button class="btn ghost sm" type="button" onclick="togglePause()">' + (m.available ? 'Pause alerts' : 'Resume alerts') + '</button>' +
-      '<button class="btn ghost sm" type="button" onclick="doLogout()" data-i18n="btn_logout">Logout</button>';
+    a.innerHTML = '<button class="chip" type="button" onclick="go(\'me\')"><span class="av">' + esc(m.name.charAt(0).toUpperCase()) + '</span>' + esc(m.blood_group) + '</button>';
+    $('#greet').textContent = 'Hello, ' + m.name.split(' ')[0];
   }else{
     a.innerHTML = '<button class="btn ghost sm" type="button" onclick="openAuth(\'login\')" data-i18n="btn_login">Login</button>' +
-      '<button class="btn sm" type="button" onclick="openAuth(\'register\')" data-i18n="btn_register">Register</button>';
+      '<button class="btn sm hide-s" type="button" onclick="openAuth(\'register\')" data-i18n="btn_register">Register</button>';
+    $('#greet').textContent = 'Welcome to DONOR FINDER++';
   }
   applyLang();
 }
@@ -526,7 +610,7 @@ $('#fReg').addEventListener('submit', async e => {
   closeModal('m-auth'); $('#rPass').value = '';
   toast('Your DONOR FINDER++ pass is ready!');
   await load();
-  location.hash = '#pass';
+  go('me');
 });
 async function doLogout(){ await api('/api/logout', 'POST'); S.me = null; toast('Logged out.'); load(); }
 async function togglePause(){
@@ -572,22 +656,27 @@ function syncGps(){
   if(!navigator.geolocation){ toast('GPS is not supported on this device.'); return; }
   toast('Finding your location...');
   navigator.geolocation.getCurrentPosition(p => {
-    S.lat = p.coords.latitude; S.lon = p.coords.longitude;
+    S.lat = p.coords.latitude; S.lon = p.coords.longitude; flyMe = true;
     $('#gpsBtn').classList.add('on');
-    toast('GPS synced. Lists are now sorted by distance.');
+    toast('GPS synced. Lists and map are now sorted by distance.');
     load();
   }, () => toast('Could not get your location. Please allow location access.'),
   {enableHighAccuracy:true, timeout:12000});
+}
+function useGpsForCamp(){
+  if(S.lat == null){ toast('Tap the GPS button at the top first.'); return; }
+  $('#hLat').value = S.lat.toFixed(5); $('#hLon').value = S.lon.toFixed(5);
+  toast('Your current position was filled in.');
 }
 
 /* ============================== ticker ============================== */
 function countTo(id, val){
   const el = $('#' + id), from = parseInt(el.textContent.replace(/\D/g, ''), 10) || 0;
   if(from === val){ el.textContent = val.toLocaleString(); return; }
-  const t0 = performance.now(), dur = 900;
+  const t0 = performance.now(), dur = 1000;
   (function step(t){
-    const k = Math.min(1, (t - t0) / dur);
-    el.textContent = Math.round(from + (val - from) * k).toLocaleString();
+    const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    el.textContent = Math.round(from + (val - from) * e).toLocaleString();
     if(k < 1) requestAnimationFrame(step);
   })(t0);
 }
@@ -610,22 +699,176 @@ function filteredDonors(){
 function renderDonors(){
   const list = filteredDonors(), box = $('#donorList');
   if(!list.length){
-    box.innerHTML = '<div class="empty">No donors match yet. <button class="link-btn" type="button" onclick="openAuth(\'register\')">Register as a donor</button> or <a href="#sos">raise an SOS</a>.</div>';
-    return;
+    box.innerHTML = '<div class="empty">No donors match yet. <button class="link-btn" type="button" onclick="openAuth(\'register\')">Register as a donor</button> or <button class="link-btn" type="button" onclick="go(\'sos\')">raise an SOS</button>.</div>';
+  }else{
+    box.innerHTML = list.map((d, i) => {
+      const contact = d.phone
+        ? '<a class="btn sm" href="tel:' + esc(d.phone) + '">Call ' + esc(d.phone) + '</a>'
+        : (d.demo ? '<span class="tag">Demo profile</span>'
+                  : '<button class="btn ghost sm" type="button" onclick="openAuth(\'login\')">Log in to contact</button>');
+      return '<article class="card donor rise"' + stg(i) + '>' +
+        '<div class="bg-badge' + (S.groups.rare.indexOf(d.blood_group) > -1 ? ' rare' : '') + '">' + esc(d.blood_group) + '</div>' +
+        '<div class="d-body"><h4>' + esc(d.name) + (d.verified ? ' <span class="ver" title="ID photo verified">&#10004;</span>' : '') + '</h4>' +
+        '<p>' + esc(d.city) + (d.org_name ? ' &middot; ' + esc(d.org_name) : '') + '</p>' +
+        '<p class="meta">' + esc(d.rank) + (d.distance_km != null ? ' &middot; ' + esc(d.distance_km) + ' km away' : '') +
+        ' &middot; ' + (d.eligible ? '<span class="ok">eligible</span>' : '<span class="wait">resting</span>') + '</p>' +
+        '<div class="d-act">' + contact + '</div></div></article>';
+    }).join('');
   }
-  box.innerHTML = list.map(d => {
-    const contact = d.phone
-      ? '<a class="btn sm" href="tel:' + esc(d.phone) + '">Call ' + esc(d.phone) + '</a>'
-      : (d.demo ? '<span class="tag">Demo profile</span>'
-                : '<button class="btn ghost sm" type="button" onclick="openAuth(\'login\')">Log in to contact</button>');
-    return '<article class="card donor">' +
-      '<div class="bg-badge' + (S.groups.rare.indexOf(d.blood_group) > -1 ? ' rare' : '') + '">' + esc(d.blood_group) + '</div>' +
-      '<div class="d-body"><h4>' + esc(d.name) + (d.verified ? ' <span class="ver" title="ID photo verified">&#10004;</span>' : '') + '</h4>' +
-      '<p>' + esc(d.city) + (d.org_name ? ' &middot; ' + esc(d.org_name) : '') + '</p>' +
-      '<p class="meta">' + esc(d.rank) + (d.distance_km != null ? ' &middot; ' + esc(d.distance_km) + ' km away' : '') +
-      ' &middot; ' + (d.eligible ? '<span class="ok">eligible</span>' : '<span class="wait">resting</span>') + '</p>' +
-      '<div class="d-act">' + contact + '</div></div></article>';
-  }).join('');
+  renderMap();
+}
+
+/* ============================== MAP ============================== */
+const CITY_XY = {
+  chennai:[13.0827,80.2707], coimbatore:[11.0168,76.9558], madurai:[9.9252,78.1198],
+  tiruchirappalli:[10.7905,78.7047], trichy:[10.7905,78.7047], salem:[11.6643,78.1460],
+  tirunelveli:[8.7139,77.7567], erode:[11.3410,77.7172], vellore:[12.9165,79.1325],
+  thanjavur:[10.7870,79.1378], bengaluru:[12.9716,77.5946], bangalore:[12.9716,77.5946],
+  hyderabad:[17.3850,78.4867], kochi:[9.9312,76.2673], thiruvananthapuram:[8.5241,76.9366],
+  mumbai:[19.0760,72.8777], pune:[18.5204,73.8567], delhi:[28.6139,77.2090],
+  kolkata:[22.5726,88.3639], ahmedabad:[23.0225,72.5714], jaipur:[26.9124,75.7873],
+  lucknow:[26.8467,80.9462], puducherry:[11.9416,79.8083]
+};
+function cityLL(c){ return CITY_XY[String(c || '').trim().toLowerCase()] || null; }
+
+let map = null, layers = {}, campMarkers = {}, banksLoadedFor = '';
+const LAYER_ON = {donors:true, camps:true, sos:true, banks:false};
+
+function pin(cls, html){
+  return L.divIcon({className:'', html:'<div class="pin ' + cls + '"><span>' + html + '</span></div>',
+    iconSize:[36,36], iconAnchor:[18,34], popupAnchor:[0,-30]});
+}
+function initMap(){
+  if(map || !window.L) return;
+  map = L.map('map', {scrollWheelZoom:false}).setView([22.6, 79], 5);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {maxZoom:19, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
+  ['donors', 'camps', 'sos', 'banks', 'me'].forEach(k => { layers[k] = L.layerGroup(); });
+  Object.keys(layers).forEach(k => { if(k === 'me' || LAYER_ON[k]) layers[k].addTo(map); });
+  map.on('focus', () => map.scrollWheelZoom.enable());
+  map.on('blur', () => map.scrollWheelZoom.disable());
+}
+function navLink(lat, lon){ return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(lat + ',' + lon); }
+
+function renderMap(){
+  if(!map) return;
+  Object.keys(layers).forEach(k => layers[k].clearLayers());
+  campMarkers = {};
+  const pts = [];
+
+  /* donors: grouped by city, never exact positions */
+  const by = {};
+  filteredDonors().forEach(d => {
+    const ll = cityLL(d.city); if(!ll) return;
+    const k = String(d.city).trim().toLowerCase();
+    (by[k] = by[k] || {ll:ll, city:d.city, list:[]}).list.push(d);
+  });
+  Object.keys(by).forEach(k => {
+    const g = by[k], cnt = {};
+    g.list.forEach(d => { cnt[d.blood_group] = (cnt[d.blood_group] || 0) + 1; });
+    const rows = Object.keys(cnt).map(x => '<b>' + esc(x) + '</b> &times; ' + cnt[x]).join(' &nbsp; ');
+    L.marker(g.ll, {icon:pin('donor', g.list.length)})
+      .bindPopup('<div class="pop"><h4>' + esc(g.city) + '</h4><p>' + g.list.length + ' donor(s)</p><p>' + rows + '</p><p class="meta">City-level only. Exact locations are never shown.</p></div>')
+      .addTo(layers.donors);
+    pts.push(g.ll);
+  });
+
+  /* camps */
+  S.camps.forEach(c => {
+    const ll = (c.lat != null && c.lon != null) ? [c.lat, c.lon] : cityLL(c.city);
+    if(!ll) return;
+    const m = L.marker(ll, {icon:pin('camp', '+')})
+      .bindPopup('<div class="pop"><h4>' + esc(c.title) + (c.sample ? ' <span class="tag">SAMPLE</span>' : '') + '</h4>' +
+        '<p>' + fmtDate(c.date) + (c.time ? ' &middot; ' + esc(c.time) : '') + '</p>' +
+        '<p>' + esc(c.address || '') + (c.address ? ', ' : '') + esc(c.city) + '</p>' +
+        '<p class="meta">' + esc(c.pledges) + ' donor(s) pledged</p>' +
+        '<p><button class="btn sm" type="button" onclick="pledge(' + Number(c.id) + ')">I\'ll donate</button> ' +
+        '<a class="btn ghost sm" target="_blank" rel="noopener" href="' + esc(navLink(ll[0], ll[1])) + '">Directions</a></p></div>')
+      .addTo(layers.camps);
+    campMarkers[c.id] = m; pts.push(ll);
+  });
+
+  /* SOS */
+  S.sos.forEach(s => {
+    const ll = cityLL(s.city); if(!ll) return;
+    L.marker(ll, {icon:pin('sos', esc(s.blood_group))})
+      .bindPopup('<div class="pop"><h4>Needs ' + esc(s.blood_group) + '</h4><p>' + esc(s.hospital) + ', ' + esc(s.city) + '</p>' +
+        '<p>' + esc(s.units) + ' unit(s) &middot; ' + esc(ago(s.created_at)) + '</p>' +
+        (s.contact ? '<p><a class="btn sm" href="tel:' + esc(s.contact) + '">Call ' + esc(s.contact) + '</a></p>' : '<p class="meta">Log in to see the contact number.</p>') + '</div>')
+      .addTo(layers.sos);
+    pts.push(ll);
+  });
+
+  /* me */
+  if(S.lat != null){
+    L.marker([S.lat, S.lon], {icon:L.divIcon({className:'', html:'<div class="me-dot"></div>', iconSize:[22,22], iconAnchor:[11,11]})})
+      .bindPopup('You are here').addTo(layers.me);
+  }
+
+  if(flyMe && S.lat != null){ map.flyTo([S.lat, S.lon], 11, {duration:1.4}); flyMe = false; wantFit = false; }
+  else if(wantFit){
+    wantFit = false;
+    if(S.lat != null) map.setView([S.lat, S.lon], 10);
+    else if(pts.length) map.fitBounds(pts, {padding:[40, 40], maxZoom:10});
+    else map.setView([22.6, 79], 5);
+  }
+}
+$('#layerChips').addEventListener('click', async e => {
+  const b = e.target.closest('.lchip'); if(!b) return;
+  const k = b.getAttribute('data-l'); initMap();
+  if(k === 'banks' && !LAYER_ON.banks){
+    if(S.lat == null){ toast('Sync your GPS first (the target icon at the top).'); syncGps(); return; }
+    LAYER_ON.banks = true; b.classList.add('on'); if(map) map.addLayer(layers.banks);
+    loadBanks(); return;
+  }
+  LAYER_ON[k] = !LAYER_ON[k]; b.classList.toggle('on', LAYER_ON[k]);
+  if(map){ LAYER_ON[k] ? map.addLayer(layers[k]) : map.removeLayer(layers[k]); }
+});
+async function loadBanks(){
+  if(!map || S.lat == null) return;
+  const key = S.lat.toFixed(2) + ',' + S.lon.toFixed(2);
+  if(banksLoadedFor === key) return;
+  toast('Searching nearby hospitals and blood banks...');
+  const R = 10000;
+  const q = '[out:json][timeout:25];(' +
+    'nwr["healthcare"="blood_bank"](around:' + R + ',' + S.lat + ',' + S.lon + ');' +
+    'nwr["amenity"="blood_bank"](around:' + R + ',' + S.lat + ',' + S.lon + ');' +
+    'nwr["healthcare"="blood_donation"](around:' + R + ',' + S.lat + ',' + S.lon + ');' +
+    'nwr["amenity"="hospital"](around:' + R + ',' + S.lat + ',' + S.lon + ');' +
+    ');out center 80;';
+  try{
+    const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 28000);
+    const r = await fetch('https://overpass-api.de/api/interpreter', {method:'POST', body:'data=' + encodeURIComponent(q), signal:ctl.signal});
+    clearTimeout(to);
+    if(!r.ok) throw new Error('bad status');
+    const j = await r.json();
+    layers.banks.clearLayers();
+    let n = 0;
+    (j.elements || []).forEach(el => {
+      const lat = el.lat != null ? el.lat : (el.center && el.center.lat);
+      const lon = el.lon != null ? el.lon : (el.center && el.center.lon);
+      if(lat == null || lon == null) return;
+      const t = el.tags || {}, isBank = t.healthcare === 'blood_bank' || t.amenity === 'blood_bank' || t.healthcare === 'blood_donation';
+      const name = t.name || (isBank ? 'Blood bank' : 'Hospital'), ph = t.phone || t['contact:phone'] || '';
+      const dist = kmBetween(S.lat, S.lon, lat, lon).toFixed(1);
+      L.marker([lat, lon], {icon:pin(isBank ? 'bank' : 'hosp', isBank ? '+' : 'H')})
+        .bindPopup('<div class="pop"><h4>' + esc(name) + '</h4><p>' + (isBank ? 'Blood bank / donation centre' : 'Hospital') + ' &middot; ' + dist + ' km</p>' +
+          (ph ? '<p><a class="btn sm" href="tel:' + esc(ph.replace(/[^\d+]/g, '')) + '">Call ' + esc(ph) + '</a></p>' : '') +
+          '<p><a class="btn ghost sm" target="_blank" rel="noopener" href="' + esc(navLink(lat, lon)) + '">Directions</a></p></div>')
+        .addTo(layers.banks);
+      n++;
+    });
+    banksLoadedFor = key;
+    toast(n ? n + ' places found within 10 km.' : 'No places found in OpenStreetMap near you.');
+  }catch(_e){ toast('Could not load nearby places right now. Try again in a moment.'); }
+}
+function showCamp(id){
+  go('find');
+  setTimeout(() => {
+    const m = campMarkers[id]; if(!map || !m) return;
+    map.invalidateSize(); map.flyTo(m.getLatLng(), 14, {duration:1.2});
+    setTimeout(() => m.openPopup(), 1300);
+  }, 450);
 }
 
 /* ============================== SOS ============================== */
@@ -661,8 +904,8 @@ $('#sosForm').addEventListener('submit', async e => {
 function renderSos(){
   const box = $('#sosFeed');
   if(!S.sos.length){ box.innerHTML = '<div class="empty">No active requests in the last 48 hours.</div>'; return; }
-  box.innerHTML = S.sos.map(s =>
-    '<div class="feed-i"><div class="bg-badge sm">' + esc(s.blood_group) + '</div><div><b>' + esc(s.hospital) + '</b>' +
+  box.innerHTML = S.sos.map((s, i) =>
+    '<div class="feed-i rise"' + stg(i) + '><div class="bg-badge sm">' + esc(s.blood_group) + '</div><div><b>' + esc(s.hospital) + '</b>' +
     '<p>' + esc(s.city || '') + ' &middot; ' + esc(s.units) + ' unit(s) &middot; ' + esc(ago(s.created_at)) + '</p>' +
     (s.note ? '<p class="meta">' + esc(s.note) + '</p>' : '') +
     '<p>' + (s.contact ? '<a href="tel:' + esc(s.contact) + '">' + esc(s.contact) + '</a>' : '<button class="link-btn" type="button" onclick="openAuth(\'login\')">Log in to see contact</button>') + '</p></div></div>'
@@ -670,29 +913,43 @@ function renderSos(){
 }
 
 /* ============================== camps ============================== */
-function renderCamps(){
-  const box = $('#campList');
-  if(!S.camps.length){ box.innerHTML = '<div class="empty">No upcoming camps listed. Be the first to host one!</div>'; return; }
-  box.innerHTML = S.camps.map(c => {
-    const dest = (c.lat != null && c.lon != null) ? c.lat + ',' + c.lon : (c.address || '') + ' ' + c.city;
-    const nav = 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(dest);
-    return '<article class="card camp"><div class="camp-d"><b>' + fmtDate(c.date) + '</b><span>' + esc(c.time || '') + '</span></div>' +
-      '<div class="d-body"><h4>' + esc(c.title) + (c.sample ? ' <span class="tag">SAMPLE</span>' : '') + '</h4>' +
-      '<p>' + esc(c.organizer || 'Community organiser') + '</p>' +
-      '<p>' + esc(c.address || '') + (c.address ? ', ' : '') + esc(c.city) + '</p>' +
-      '<p class="meta">' + (c.distance_km != null ? esc(c.distance_km) + ' km away &middot; ' : '') + esc(c.pledges) + ' donor(s) pledged' +
-      (c.contact ? ' &middot; ' + esc(c.contact) : '') + '</p>' +
-      '<div class="d-act"><button class="btn sm" type="button" data-pledge="' + esc(c.id) + '"' + (c.pledged ? ' disabled' : '') + '>' + (c.pledged ? 'Pledged &#10003;' : "I'll donate") + '</button>' +
-      '<a class="btn ghost sm" target="_blank" rel="noopener" href="' + esc(nav) + '">Navigate</a></div></div></article>';
-  }).join('');
+function campCard(c, i, full){
+  const dest = (c.lat != null && c.lon != null) ? c.lat + ',' + c.lon : (c.address || '') + ' ' + c.city;
+  const nav = 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(dest);
+  return '<article class="card camp rise"' + stg(i) + '><div class="camp-d"><b>' + fmtDate(c.date) + '</b><span>' + esc(c.time || '') + '</span></div>' +
+    '<div class="d-body"><h4>' + esc(c.title) + (c.sample ? ' <span class="tag">SAMPLE</span>' : '') + '</h4>' +
+    '<p>' + esc(c.organizer || 'Community organiser') + '</p>' +
+    '<p>' + esc(c.address || '') + (c.address ? ', ' : '') + esc(c.city) + '</p>' +
+    '<p class="meta">' + (c.distance_km != null ? esc(c.distance_km) + ' km away &middot; ' : '') + esc(c.pledges) + ' donor(s) pledged' +
+    (c.contact ? ' &middot; ' + esc(c.contact) : '') + '</p>' +
+    '<div class="d-act"><button class="btn sm" type="button" data-pledge="' + esc(c.id) + '"' + (c.pledged ? ' disabled' : '') + '>' + (c.pledged ? 'Pledged &#10003;' : "I'll donate") + '</button>' +
+    (full ? '<button class="btn ghost sm" type="button" data-show="' + esc(c.id) + '">On map</button>' : '') +
+    '<a class="btn ghost sm" target="_blank" rel="noopener" href="' + esc(nav) + '">Navigate</a></div></div></article>';
 }
-$('#campList').addEventListener('click', async e => {
-  const b = e.target.closest('[data-pledge]'); if(!b) return;
+function renderCamps(){
+  const box = $('#campList'), hb = $('#homeCamps');
+  if(!S.camps.length){
+    const e = '<div class="empty">No upcoming camps listed. Be the first to host one!</div>';
+    box.innerHTML = e; hb.innerHTML = e; return;
+  }
+  box.innerHTML = S.camps.map((c, i) => campCard(c, i, true)).join('');
+  hb.innerHTML = S.camps.slice(0, 2).map((c, i) => campCard(c, i, true)).join('');
+}
+async function pledge(id){
   if(!S.me){ toast('Please log in to pledge.'); openAuth('login'); return; }
-  const d = await api('/api/camps/' + b.getAttribute('data-pledge') + '/pledge', 'POST');
+  const d = await api('/api/camps/' + id + '/pledge', 'POST');
   if(!d.ok){ toast(d.error || 'Could not pledge.'); return; }
   toast('Thank you! Your pledge is recorded.'); load();
-});
+}
+function campClick(e){
+  const p = e.target.closest('[data-pledge]');
+  if(p){ pledge(p.getAttribute('data-pledge')); return; }
+  const s = e.target.closest('[data-show]');
+  if(s) showCamp(Number(s.getAttribute('data-show')));
+}
+$('#campList').addEventListener('click', campClick);
+$('#homeCamps').addEventListener('click', campClick);
+
 function openHost(){
   if(!S.me){ toast('Please log in to host a camp.'); openAuth('login'); return; }
   const t = new Date(); t.setDate(t.getDate() + 1);
@@ -720,7 +977,7 @@ function renderMatch(){
   if(mode === 'need'){ list = S.compat[bg]; lead = bg + ' patients can receive from:'; }
   else{ list = Object.keys(S.compat).filter(r => S.compat[r].indexOf(bg) > -1); lead = bg + ' donors can give to:'; }
   $('#mOut').innerHTML = '<p class="lead-s">' + esc(lead) + '</p>' +
-    list.map(g => '<span class="chipg' + (S.groups.rare.indexOf(g) > -1 ? ' rare' : '') + '">' + esc(g) + '</span>').join('');
+    list.map((g, i) => '<span class="chipg rise' + (S.groups.rare.indexOf(g) > -1 ? ' rare' : '') + '"' + stg(i) + '>' + esc(g) + '</span>').join('');
 }
 
 /* ============================== leaderboard ============================== */
@@ -735,7 +992,7 @@ function renderBoard(){
   if(boardTab === 'heroes'){
     const h = S.board.heroes;
     box.innerHTML = h.length ? h.map((x, i) =>
-      '<div class="b-row"><span class="pos">' + (medals[i] || (i + 1)) + '</span>' +
+      '<div class="b-row rise"' + stg(i) + '><span class="pos">' + (medals[i] || (i + 1)) + '</span>' +
       '<div class="b-main"><b>' + esc(x.name) + (x.demo ? ' <span class="tag">DEMO</span>' : '') + '</b><small>' + esc(x.rank) + ' &middot; ' + esc(x.blood_group) + (x.org_name ? ' &middot; ' + esc(x.org_name) : '') + '</small></div>' +
       '<span class="pts">' + esc(x.points) + ' <small>PulsePoints</small></span></div>').join('')
       : '<div class="empty">No HemoHeroes yet.</div>';
@@ -745,7 +1002,7 @@ function renderBoard(){
   if(!o.length){ box.innerHTML = '<div class="empty">No squads here yet. Register with your hostel, department or company name to start one!</div>'; return; }
   const max = Math.max.apply(null, o.map(x => x.points)) || 1;
   box.innerHTML = o.map((x, i) =>
-    '<div class="b-row"><span class="pos">' + (medals[i] || (i + 1)) + '</span>' +
+    '<div class="b-row rise"' + stg(i) + '><span class="pos">' + (medals[i] || (i + 1)) + '</span>' +
     '<div class="b-main"><b>' + esc(x.name) + '</b><small>' + esc(x.type) + ' &middot; ' + esc(x.donors) + ' member(s) &middot; ' + esc(x.donations) + ' donation(s)</small>' +
     '<div class="bar"><i style="width:' + Math.max(4, Math.round(x.points / max * 100)) + '%"></i></div></div>' +
     '<span class="pts">' + esc(x.points) + ' <small>PulsePoints</small></span></div>').join('');
@@ -755,7 +1012,7 @@ function renderBoard(){
 function renderPass(){
   const w = $('#passWrap'), m = S.me;
   if(!m){
-    w.innerHTML = '<div class="empty">Create your free pass to get a verifiable donor ID with QR code. <button class="btn sm" type="button" onclick="openAuth(\'register\')">Create my pass</button></div>';
+    w.innerHTML = '<div class="empty big-e">Create your free pass to get a verifiable donor ID with QR code.<br><button class="btn" type="button" onclick="openAuth(\'register\')">Create my pass</button> <button class="btn ghost" type="button" onclick="openAuth(\'login\')">I already have one</button></div>';
     return;
   }
   const marks = [0, 1, 2, 5, 10]; let prev = 0;
@@ -765,17 +1022,20 @@ function renderPass(){
   const ps = {none:'No ID photo', pending:'Photo under review', verified:'ID photo verified \u2714', rejected:'Photo rejected'}[m.photo_status] || '';
   w.innerHTML =
     '<div class="pass-grid"><div class="pass" id="passCard">' +
-    '<div class="pass-top"><span class="drop" aria-hidden="true"></span><b>DONOR FINDER++</b><span class="pass-t">DONOR PASS</span></div>' +
+    '<div class="pass-top"><span class="logo sm" aria-hidden="true"><svg class="ic fill"><use href="#i-drop"/></svg></span><b>DONOR FINDER++</b><span class="pass-t">DONOR PASS</span></div>' +
     '<div class="pass-mid"><div class="pass-bg">' + esc(m.blood_group) + '</div><div><h3>' + esc(m.name) + '</h3>' +
     '<p class="rk">' + esc(m.rank) + '</p><p>' + esc(m.city) + (m.org_name ? ' &middot; ' + esc(m.org_name) : '') + '</p>' +
     '<p class="mono">ID ' + esc(m.uid) + '</p></div><div id="qrBox" class="qr"></div></div>' +
     '<div class="pass-stats"><span><b>' + esc(m.donations) + '</b> donations</span><span><b>' + esc(m.points) + '</b> PulsePoints</span><span>' + esc(ps) + '</span></div>' +
-    '<div class="bar"><i style="width:' + pct + '%"></i></div>' +
+    '<div class="bar light"><i style="width:' + pct + '%"></i></div>' +
     '<p class="fine">' + (nr ? esc(nr.need) + ' more donation(s) to reach ' + esc(nr.name) : 'You are an Apex Lifeblood. Legend!') + '</p>' +
     '<p class="fine">Next eligible: ' + (m.next_eligible ? esc(m.next_eligible) : 'now') + '. Scan the QR to verify. Eligibility is always checked at the hospital.</p></div>' +
-    '<div class="pass-side"><button class="btn" type="button" onclick="window.print()">Save pass as PDF</button>' +
-    '<button class="btn ghost" type="button" onclick="openLog()">I donated &mdash; log it</button>' +
-    '<button class="btn ghost" type="button" onclick="openModal(\'m-elig\')">Eligibility self-check</button></div></div>';
+    '<div class="pass-side">' +
+    '<button class="btn" type="button" onclick="openLog()">I donated &mdash; log it</button>' +
+    '<button class="btn ghost" type="button" onclick="window.print()">Save pass as PDF</button>' +
+    '<button class="btn ghost" type="button" onclick="openModal(\'m-elig\')">Eligibility self-check</button>' +
+    '<button class="btn ghost" type="button" onclick="togglePause()">' + (m.available ? 'Pause SOS alerts' : 'Resume SOS alerts') + '</button>' +
+    '<button class="btn ghost danger" type="button" onclick="doLogout()">Logout</button></div></div>';
   if(window.QRCode){
     new QRCode($('#qrBox'), {text: location.origin + '/verify/' + m.uid, width:112, height:112, colorDark:'#000000', colorLight:'#ffffff'});
   }else{
@@ -815,14 +1075,14 @@ const VR = {
       none:g => 'No donors listed for ' + g + ' yet. You can raise an SOS.',
       sos:'Opening the emergency SOS form.', camps:n => n + ' upcoming blood camp' + (n === 1 ? '' : 's') + ' listed. Showing them now.',
       board:'Showing the leaderboard.', pass:'Showing your donor pass.', login:'Opening login.',
-      elig:'Opening the eligibility check. The hospital makes the final decision.', find:'Showing donors.',
+      elig:'Opening the eligibility check. The hospital makes the final decision.', find:'Showing donors on the map.',
       unknown:'Sorry, I did not get that. Try saying O positive, emergency, or camps near me.',
       nosup:'Voice is not supported in this browser. Please type your command instead.'},
   ta:{found:(n, g) => g + ' ரத்த வகைக்கு ' + n + ' தானம் செய்பவர்கள் கிடைத்தனர்.',
       none:g => g + ' வகைக்கு யாரும் இன்னும் இல்லை. SOS அனுப்பலாம்.',
       sos:'அவசர SOS படிவத்தைத் திறக்கிறேன்.', camps:n => 'அருகில் ' + n + ' ரத்த முகாம்கள் உள்ளன.',
       board:'தரவரிசையைக் காட்டுகிறேன்.', pass:'உங்கள் தானர் அட்டையைக் காட்டுகிறேன்.', login:'உள்நுழைவைத் திறக்கிறேன்.',
-      elig:'தகுதிப் பரிசோதனையைத் திறக்கிறேன். இறுதி முடிவை மருத்துவமனை எடுக்கும்.', find:'தானம் செய்பவர்களைக் காட்டுகிறேன்.',
+      elig:'தகுதிப் பரிசோதனையைத் திறக்கிறேன். இறுதி முடிவை மருத்துவமனை எடுக்கும்.', find:'வரைபடத்தில் தானம் செய்பவர்களைக் காட்டுகிறேன்.',
       unknown:'புரியவில்லை. ஓ பாசிட்டிவ், அவசரம், அல்லது முகாம் என்று சொல்லுங்கள்.',
       nosup:'இந்த உலாவியில் குரல் வசதி இல்லை. கட்டளையை தட்டச்சு செய்யுங்கள்.'}
 };
@@ -850,28 +1110,27 @@ function parseGroup(raw){
   const sign = /^(positive|plus|pos|\+)$/.test(m[2]) ? '+' : '-';
   return m[1].replace(/\s/g, '').toUpperCase() + sign;
 }
-function goTo(id){ const el = document.getElementById(id); if(el) el.scrollIntoView({behavior:'smooth', block:'start'}); }
 function handleVoice(raw){
   const t = String(raw).toLowerCase(), R = VR[vl()], g = parseGroup(t);
   if(/emergency|sos|urgent|அவசர/.test(t)){
     if(g) $('#sBg').value = g;
-    goTo('sos'); say(R.sos);
+    go('sos'); say(R.sos);
   }else if(/camp|முகாம்/.test(t)){
-    goTo('camps'); say(R.camps(S.camps.length));
+    go('camps'); say(R.camps(S.camps.length));
   }else if(/leader|rank|pantheon|தரவரிசை|பாந்தியன்/.test(t)){
-    goTo('board'); say(R.board);
+    go('rank'); say(R.board);
   }else if(/pass|card|அட்டை/.test(t)){
-    goTo('pass'); say(R.pass);
+    go('me'); say(R.pass);
   }else if(/log ?in|sign in|உள்நுழை/.test(t)){
     openAuth('login'); say(R.login);
   }else if(/eligib|தகுதி/.test(t)){
     openModal('m-elig'); say(R.elig);
   }else if(g){
-    $('#fBg').value = g; renderDonors(); goTo('find');
+    $('#fBg').value = g; applyFilter(); go('find');
     const n = filteredDonors().length;
     say(n ? R.found(n, g) : R.none(g));
-  }else if(/donor|find|search|தேடு|தானம்/.test(t)){
-    goTo('find'); say(R.find);
+  }else if(/donor|find|search|map|தேடு|தானம்/.test(t)){
+    go('find'); say(R.find);
   }else{
     say(R.unknown);
   }
@@ -894,8 +1153,8 @@ $('#vForm').addEventListener('submit', e => {
 
 /* ============================== boot ============================== */
 setLang(LANG);
+go(location.hash.replace('#', '') || 'home');
 load();
 </script>
 </body>
 </html>
-```

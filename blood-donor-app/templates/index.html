@@ -11,12 +11,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Sans+Telugu:wght@400;600;700&family=Noto+Sans+Kannada:wght@400;600;700&family=Noto+Sans+Malayalam:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="/static/style.css">
+<style>
+/* small additions kept here so no extra CSS edit is needed */
+.matcher{margin-bottom:16px}
+.matcher h3{font-size:1.05rem;font-weight:800}
+.pass-badge{flex:none;width:68px;height:68px;border-radius:18px;display:grid;place-items:center;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.45);font-weight:800;font-size:1.35rem;text-align:center;line-height:1.05}
+#radHint{font-size:.78rem;color:var(--muted);font-weight:600;min-height:1.2em}
+.radius-box .pills{gap:6px}
+.radius-box .pill{padding:5px 12px;font-size:.78rem}
+</style>
 </head>
 <body>
-
 <!-- floating blood cells (decoration) -->
 <div class="bgfx" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-
 <!-- icon sprite -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <defs>
@@ -33,7 +40,6 @@
     <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 5.6a5.2 5.2 0 0 0-7.4 0L12 7l-1.4-1.4a5.2 5.2 0 0 0-7.4 7.4L12 21.8l8.8-8.8a5.2 5.2 0 0 0 0-7.4z"/></symbol>
   </defs>
 </svg>
-
 <!-- Bottom tab bar (mobile) / side rail (desktop) -->
 <nav class="tabbar" aria-label="Main">
   <button class="nt on" type="button" data-go="home"><span class="nt-i"><svg class="ic"><use href="#i-home"/></svg></span><span class="nt-l" data-i18n="tab_home">Home</span></button>
@@ -43,15 +49,12 @@
   <button class="nt" type="button" data-go="rank"><span class="nt-i"><svg class="ic"><use href="#i-trophy"/></svg></span><span class="nt-l" data-i18n="tab_rank">Rank</span></button>
   <button class="nt" type="button" data-go="me"><span class="nt-i"><svg class="ic"><use href="#i-user"/></svg></span><span class="nt-l" data-i18n="tab_me">Me</span></button>
 </nav>
-
 <div class="shell">
-
   <div class="advisory" role="note">
     <svg class="ic sm"><use href="#i-heart"/></svg>
     <span data-i18n="advisory">Before donating, your eligibility must be checked at the hospital.</span>
     <button class="link-btn" type="button" onclick="openModal('m-elig')">Quick self-check</button>
   </div>
-
   <header class="top">
     <a class="brand" href="#home" onclick="go('home');return false;" aria-label="DONOR FINDER++ home">
       <span class="logo" aria-hidden="true"><svg class="ic fill"><use href="#i-drop"/></svg></span>
@@ -70,9 +73,7 @@
       <div id="authArea" class="auth-area"></div>
     </div>
   </header>
-
   <main class="stage">
-
     <!-- ================= HOME ================= -->
     <section class="screen on" id="s-home">
       <div class="hero">
@@ -86,7 +87,6 @@
         </div>
         <svg class="ecg" viewBox="0 0 600 80" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M0 40H120L140 40L155 10L175 70L195 25L210 40H340L360 40L375 12L395 68L415 28L430 40H600"/></svg>
       </div>
-
       <div class="ticker" aria-live="polite">
         <div class="tk rise" style="--i:0"><b id="tkLives">0</b><span>Lives touched<small>est. 3 per donation</small></span></div>
         <div class="tk rise" style="--i:1"><b id="tkDon">0</b><span>Donations logged</span></div>
@@ -95,21 +95,30 @@
         <div class="tk rise" style="--i:4"><b id="tkSms">0</b><span>SOS alerts sent</span></div>
       </div>
       <p class="fine">Counters show real activity on this site only. They start at zero and grow as people use it.</p>
-
       <div class="tiles">
-        <button class="tile rise" style="--i:0" type="button" onclick="go('find')"><span class="tile-i"><svg class="ic"><use href="#i-pin"/></svg></span><b>Find donors</b><small>Map and list</small></button>
+        <button class="tile rise" style="--i:0" type="button" onclick="go('find')"><span class="tile-i"><svg class="ic"><use href="#i-pin"/></svg></span><b>Find donors</b><small>Map, radius and match</small></button>
         <button class="tile rise" style="--i:1" type="button" onclick="go('sos')"><span class="tile-i hot"><svg class="ic fill"><use href="#i-drop"/></svg></span><b>Send SOS</b><small>Alert nearby donors</small></button>
         <button class="tile rise" style="--i:2" type="button" onclick="go('camps')"><span class="tile-i"><svg class="ic"><use href="#i-cal"/></svg></span><b>Blood camps</b><small>Near you</small></button>
         <button class="tile rise" style="--i:3" type="button" onclick="go('rank')"><span class="tile-i"><svg class="ic"><use href="#i-trophy"/></svg></span><b>Pulse Pantheon</b><small>Leaderboard</small></button>
         <button class="tile rise" style="--i:4" type="button" onclick="go('me')"><span class="tile-i"><svg class="ic"><use href="#i-user"/></svg></span><b>My donor pass</b><small>QR verified ID</small></button>
         <button class="tile rise" style="--i:5" type="button" onclick="openModal('m-elig')"><span class="tile-i"><svg class="ic"><use href="#i-heart"/></svg></span><b>Am I eligible?</b><small>Self-check</small></button>
       </div>
-
       <div class="block-h"><h2>Camps coming up</h2><button class="link-btn" type="button" onclick="go('camps')">See all</button></div>
       <div id="homeCamps" class="grid"><div class="skel"></div><div class="skel"></div></div>
+      <div class="gallery">
+        <!-- Add your own photos to the static folder: photo-1.jpg, photo-2.jpg, photo-3.jpg -->
+        <figure><img src="/static/photo-1.jpg" alt="Blood donation" loading="lazy" onerror="this.parentElement.remove()"></figure>
+        <figure><img src="/static/photo-2.jpg" alt="Volunteers at a blood camp" loading="lazy" onerror="this.parentElement.remove()"></figure>
+        <figure><img src="/static/photo-3.jpg" alt="Donor with a certificate" loading="lazy" onerror="this.parentElement.remove()"></figure>
+      </div>
+    </section>
+    <!-- ================= FIND + MAP ================= -->
+    <section class="screen" id="s-find">
+      <div class="block-h first"><h2 data-i18n="sec_find">Donors Near You</h2></div>
 
-      <div class="block-h"><h2 data-i18n="sec_match">Blood Compatibility Matcher</h2></div>
+      <!-- Compatibility matcher (moved here from Home) -->
       <div class="card matcher">
+        <h3 data-i18n="sec_match">Blood Compatibility Matcher</h3>
         <div class="row">
           <label>Blood group<select id="mBg" onchange="renderMatch()"></select></label>
           <label>Mode
@@ -123,24 +132,28 @@
         <p class="fine">Rare phenotypes such as Bombay (Oh), Rh-null, Kell- and Duffy- can only receive blood from the same phenotype. A hospital must always cross-match before transfusion.</p>
       </div>
 
-      <div class="gallery">
-        <!-- Add your own photos to the static folder: photo-1.jpg, photo-2.jpg, photo-3.jpg -->
-        <figure><img src="/static/photo-1.jpg" alt="Blood donation" loading="lazy" onerror="this.parentElement.remove()"></figure>
-        <figure><img src="/static/photo-2.jpg" alt="Volunteers at a blood camp" loading="lazy" onerror="this.parentElement.remove()"></figure>
-        <figure><img src="/static/photo-3.jpg" alt="Donor with a certificate" loading="lazy" onerror="this.parentElement.remove()"></figure>
-      </div>
-    </section>
-
-    <!-- ================= FIND + MAP ================= -->
-    <section class="screen" id="s-find">
-      <div class="block-h first"><h2 data-i18n="sec_find">Donors Near You</h2></div>
       <div class="filters card">
         <label>Blood needed<select id="fBg" onchange="applyFilter()"></select></label>
         <label>City<input id="fCity" list="cityList" placeholder="e.g. Chennai" oninput="applyFilter()"></label>
+        <div class="radius-box">
+          <div class="radius-top"><span>Search radius</span><output id="radiusVal">500 km (max)</output></div>
+          <input type="range" id="fRad" min="0" max="500" step="1" value="500" oninput="onRad()" aria-label="Search radius in kilometres">
+          <div class="radius-scale"><span>0 = exact spot</span><span>500 km</span></div>
+          <div class="pills" id="radPills">
+            <button type="button" class="pill" data-r="0">Exact spot</button>
+            <button type="button" class="pill" data-r="1">1 km</button>
+            <button type="button" class="pill" data-r="5">5 km</button>
+            <button type="button" class="pill" data-r="10">10 km</button>
+            <button type="button" class="pill" data-r="25">25 km</button>
+            <button type="button" class="pill" data-r="50">50 km</button>
+            <button type="button" class="pill" data-r="100">100 km</button>
+            <button type="button" class="pill on" data-r="500">Max</button>
+          </div>
+          <p id="radHint"></p>
+        </div>
         <label class="chk"><input type="checkbox" id="fElig" onchange="applyFilter()"> Eligible to donate now</label>
       </div>
       <div class="pills" id="rarePills" aria-label="Rare blood groups"></div>
-
       <div class="find-grid">
         <div class="map-col">
           <div class="layers" id="layerChips">
@@ -161,7 +174,6 @@
         </div>
       </div>
     </section>
-
     <!-- ================= SOS ================= -->
     <section class="screen" id="s-sos">
       <div class="sos-banner">
@@ -198,7 +210,6 @@
         </div>
       </div>
     </section>
-
     <!-- ================= CAMPS ================= -->
     <section class="screen" id="s-camps">
       <div class="block-h first"><h2 data-i18n="sec_camps">Blood Camps Near Me</h2></div>
@@ -212,7 +223,6 @@
       <div id="campList" class="grid"><div class="skel"></div><div class="skel"></div></div>
       <p class="fine">Camps marked SAMPLE are demo entries. Camps added by members are not verified by us, so confirm with the organiser before travelling.</p>
     </section>
-
     <!-- ================= RANK ================= -->
     <section class="screen" id="s-rank">
       <div class="block-h first"><h2 data-i18n="sec_board">The Pulse Pantheon</h2></div>
@@ -238,16 +248,13 @@
         </div>
       </div>
     </section>
-
     <!-- ================= ME ================= -->
     <section class="screen" id="s-me">
       <div class="block-h first"><h2 data-i18n="sec_pass">Digital Donor Pass</h2></div>
       <p class="sub">Your verifiable donor ID. Anyone can scan the QR code to confirm it is genuine.</p>
       <div id="passWrap"></div>
     </section>
-
   </main>
-
   <footer class="foot">
     <div class="foot-in">
       <b>DONOR FINDER++</b>
@@ -256,9 +263,7 @@
     </div>
   </footer>
 </div>
-
 <datalist id="cityList"></datalist>
-
 <!-- Auth modal -->
 <div class="modal" id="m-auth" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-label="Login or register">
@@ -267,14 +272,12 @@
       <button class="tab on" id="tLogin" type="button" onclick="authTab('login')">Login</button>
       <button class="tab" id="tReg" type="button" onclick="authTab('register')">Register</button>
     </div>
-
     <form id="fLogin" class="form" novalidate>
       <label>Mobile number<input id="lPhone" inputmode="numeric" maxlength="10" autocomplete="username" placeholder="10-digit number"></label>
       <label>Password<input id="lPass" type="password" autocomplete="current-password"></label>
       <button class="btn big" type="submit">Login</button>
       <p class="msg" id="lMsg"></p>
     </form>
-
     <form id="fReg" class="form" novalidate hidden>
       <label>Full name<input id="rName" maxlength="60" autocomplete="name"></label>
       <div class="row">
@@ -290,7 +293,6 @@
         <label>College / hostel / dept / company<input id="rOrg" maxlength="80" placeholder="For the leaderboard"></label>
       </div>
       <label class="chk"><input type="checkbox" id="rGps" checked> Use my approximate location (rounded, never shown publicly)</label>
-
       <fieldset class="photo">
         <legend>ID photo for verification (optional)</legend>
         <input type="file" id="rPhoto" accept="image/*">
@@ -302,14 +304,12 @@
           <p class="fine">The black bar is added in your browser before upload. An admin reviews the photo and deletes it after approval.</p>
         </div>
       </fieldset>
-
       <label class="chk"><input type="checkbox" id="rConsent"> I agree to share my name, blood group, city and phone with logged-in members so patients can reach me. I can pause alerts any time.</label>
       <button class="btn big" type="submit">Create my pass</button>
       <p class="msg" id="rMsg"></p>
     </form>
   </div>
 </div>
-
 <!-- Log donation modal -->
 <div class="modal" id="m-log" hidden>
   <div class="sheet small-sheet" role="dialog" aria-modal="true" aria-label="Log a donation">
@@ -324,7 +324,6 @@
     </form>
   </div>
 </div>
-
 <!-- Host camp modal -->
 <div class="modal" id="m-host" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-label="Host a blood camp">
@@ -348,14 +347,13 @@
         <label>Latitude (optional)<input id="hLat" inputmode="decimal"></label>
         <label>Longitude (optional)<input id="hLon" inputmode="decimal"></label>
       </div>
-      <button class="btn big" type="button" class="btn ghost" onclick="useGpsForCamp()" style="background:#fff;color:var(--red);border-color:var(--red);box-shadow:none">Use my GPS for latitude and longitude</button>
+      <button class="btn ghost big" type="button" onclick="useGpsForCamp()">Use my GPS for latitude and longitude</button>
       <button class="btn big" type="submit">Publish camp</button>
       <p class="msg" id="hMsg"></p>
       <p class="fine">If you skip latitude and longitude, the city centre is used for the map and distance sorting.</p>
     </form>
   </div>
 </div>
-
 <!-- Eligibility modal -->
 <div class="modal" id="m-elig" hidden>
   <div class="sheet small-sheet" role="dialog" aria-modal="true" aria-label="Eligibility self-check">
@@ -374,7 +372,6 @@
     <p class="msg" id="eMsg"></p>
   </div>
 </div>
-
 <!-- Voice assistant -->
 <button class="fab" id="vFab" type="button" aria-label="Voice assistant" onclick="toggleDock()"><svg class="ic"><use href="#i-mic"/></svg></button>
 <div class="dock" id="vDock" hidden>
@@ -395,9 +392,7 @@
   </form>
   <p class="fine" id="vHint">Try: "O positive donors", "Bombay blood", "emergency", "camps near me", "leaderboard", "my pass". Tamil: "ஓ பாசிட்டிவ்", "அவசரம்", "முகாம்". Works in Chrome or Edge.</p>
 </div>
-
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
@@ -408,7 +403,6 @@ const $$ = s => Array.prototype.slice.call(document.querySelectorAll(s));
 const ESC = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ESC[c]);
 const stg = i => ' style="--i:' + Math.min(i, 12) + '"';
-
 function toast(m){
   const t = $('#toast'); t.textContent = m; t.classList.add('show');
   clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('show'), 3800);
@@ -428,7 +422,6 @@ function openModal(id){ const m = $('#' + id); if(m){ m.hidden = false; document
 function closeModal(id){ const m = $('#' + id); if(m){ m.hidden = true; } if(!$$('.modal:not([hidden])').length) document.body.classList.remove('noscroll'); }
 $$('.modal').forEach(m => m.addEventListener('mousedown', e => { if(e.target === m) closeModal(m.id); }));
 document.addEventListener('keydown', e => { if(e.key === 'Escape') $$('.modal:not([hidden])').forEach(m => closeModal(m.id)); });
-
 function ago(s){
   const t = new Date(String(s).replace(' ', 'T') + 'Z').getTime();
   if(!t) return '';
@@ -447,7 +440,6 @@ function kmBetween(a, b, c, d){
   const h = Math.sin(dp / 2) ** 2 + Math.cos(rad(a)) * Math.cos(rad(c)) * Math.sin(dl / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(h));
 }
-
 /* button ripple */
 document.addEventListener('pointerdown', e => {
   const b = e.target.closest('.btn,.tile'); if(!b) return;
@@ -456,7 +448,6 @@ document.addEventListener('pointerdown', e => {
   s.style.cssText = 'width:' + d + 'px;height:' + d + 'px;left:' + (e.clientX - r.left - d / 2) + 'px;top:' + (e.clientY - r.top - d / 2) + 'px';
   b.appendChild(s); setTimeout(() => s.remove(), 650);
 });
-
 /* ============================== i18n ============================== */
 const T = {
   en:{advisory:"Before donating, your eligibility must be checked at the hospital.",tab_home:"Home",tab_find:"Find",tab_sos:"SOS",tab_camps:"Camps",tab_rank:"Rank",tab_me:"Me",hero_title:"One drop of blood, one life saved.",hero_sub:"Find blood donors and blood camps near you in seconds, and raise an emergency alert when every minute counts.",hero_cta1:"Find a Donor",hero_cta2:"Emergency SOS",sec_find:"Donors Near You",sec_sos:"Emergency SOS Broadcast",sec_camps:"Blood Camps Near Me",sec_match:"Blood Compatibility Matcher",sec_board:"The Pulse Pantheon",sec_pass:"Digital Donor Pass",btn_login:"Login",btn_register:"Register",btn_logout:"Logout"},
@@ -484,7 +475,6 @@ function setLang(l){
   $('#langSel').value = l;
   applyLang();
 }
-
 /* ============================== screens ============================== */
 const SCREENS = ['home', 'find', 'sos', 'camps', 'rank', 'me'];
 const ALIAS = {board:'rank', pass:'me'};
@@ -511,12 +501,10 @@ function afterShow(n){
     setTimeout(() => { if(map){ map.invalidateSize(); wantFit = true; renderMap(); } }, 80);
   }
 }
-
 /* ============================== state ============================== */
 const S = {me:null, donors:[], camps:[], sos:[], board:{orgs:[], heroes:[]}, metrics:{},
            groups:{standard:[], rare:[]}, compat:{}, orgTypes:[], cities:[], lat:null, lon:null};
 let boardTab = 'all', wantFit = true, flyMe = false;
-
 async function load(){
   let q = '';
   if(S.lat != null) q = '?lat=' + encodeURIComponent(S.lat) + '&lon=' + encodeURIComponent(S.lon);
@@ -531,7 +519,6 @@ function renderAll(){
   renderAuth(); renderTicker(); renderDonors(); renderSos(); renderCamps();
   renderMatch(); renderBoard(); renderPass();
 }
-
 /* ============================== static fills ============================== */
 function groupOptions(first){
   let h = first ? '<option value="">' + esc(first) + '</option>' : '';
@@ -556,7 +543,37 @@ $('#rarePills').addEventListener('click', e => {
   $('#fBg').value = b.getAttribute('data-g'); applyFilter();
 });
 function applyFilter(){ wantFit = true; renderDonors(); }
-
+/* ============================== radius (0 to 500 km) ============================== */
+const RAD_MAX = 500, EXACT_KM = 0.2;
+function radVal(){ return Number($('#fRad').value) || 0; }
+function radText(r){ return r === 0 ? 'Exact spot' : (r >= RAD_MAX ? RAD_MAX + ' km (max)' : r + ' km'); }
+/* strict = true for donors (unknown distance is hidden when you narrow the radius) */
+function withinRad(km, strict){
+  if(S.lat == null) return true;
+  const r = radVal();
+  if(r >= RAD_MAX) return true;
+  if(km == null || isNaN(Number(km))) return !strict;
+  km = Number(km);
+  return r === 0 ? km <= EXACT_KM : km <= r;
+}
+function onRad(){ applyFilter(); }
+$('#radPills').addEventListener('click', e => {
+  const b = e.target.closest('.pill'); if(!b) return;
+  $('#fRad').value = b.getAttribute('data-r'); onRad();
+});
+function updateRadUI(n){
+  const r = radVal(), h = $('#radHint');
+  $('#radiusVal').textContent = radText(r);
+  $$('#radPills .pill').forEach(p => p.classList.toggle('on', Number(p.getAttribute('data-r')) === r));
+  if(S.lat == null){ h.textContent = 'Tap the GPS target icon at the top to switch the radius on.'; return; }
+  if(r === 0){
+    h.textContent = n + ' donor(s) at your exact spot (within about 200 m). Donor locations are rounded for privacy, so this is the closest match possible.';
+  }else if(r >= RAD_MAX){
+    h.textContent = n + ' donor(s) shown. No distance limit.';
+  }else{
+    h.textContent = n + ' donor(s) within ' + radText(r) + ' of you. Donors with no saved location are hidden in a radius search.';
+  }
+}
 /* ============================== auth ============================== */
 function renderAuth(){
   const a = $('#authArea'), m = S.me;
@@ -619,7 +636,6 @@ async function togglePause(){
   toast(d.available ? 'You will receive SOS alerts again.' : 'Alerts paused. You are hidden from search.');
   load();
 }
-
 /* ============================== ID photo redaction ============================== */
 let img = null;
 $('#rPhoto').addEventListener('change', e => {
@@ -650,7 +666,6 @@ function exportPhoto(){
   while(d.length > 440000 && q > 0.3){ q -= 0.1; d = c.toDataURL('image/jpeg', q); }
   return d.length <= 450000 ? d : null;
 }
-
 /* ============================== GPS ============================== */
 function syncGps(){
   if(!navigator.geolocation){ toast('GPS is not supported on this device.'); return; }
@@ -668,7 +683,6 @@ function useGpsForCamp(){
   $('#hLat').value = S.lat.toFixed(5); $('#hLon').value = S.lon.toFixed(5);
   toast('Your current position was filled in.');
 }
-
 /* ============================== ticker ============================== */
 function countTo(id, val){
   const el = $('#' + id), from = parseInt(el.textContent.replace(/\D/g, ''), 10) || 0;
@@ -686,7 +700,6 @@ function renderTicker(){
   countTo('tkActive', m.active_donors || 0); countTo('tkRare', m.rare_donors || 0);
   countTo('tkSms', m.sos_sms_sent || 0);
 }
-
 /* ============================== donors ============================== */
 function filteredDonors(){
   const bg = $('#fBg').value, city = $('#fCity').value.trim().toLowerCase(), el = $('#fElig').checked;
@@ -694,12 +707,18 @@ function filteredDonors(){
   return S.donors.filter(d =>
     (!ok || ok.has(d.blood_group)) &&
     (!city || String(d.city).toLowerCase().indexOf(city) > -1) &&
-    (!el || d.eligible));
+    (!el || d.eligible) &&
+    withinRad(d.distance_km, true));
 }
 function renderDonors(){
   const list = filteredDonors(), box = $('#donorList');
+  updateRadUI(list.length);
   if(!list.length){
-    box.innerHTML = '<div class="empty">No donors match yet. <button class="link-btn" type="button" onclick="openAuth(\'register\')">Register as a donor</button> or <button class="link-btn" type="button" onclick="go(\'sos\')">raise an SOS</button>.</div>';
+    const r = radVal();
+    let why = 'No donors match yet.';
+    if(S.lat != null && r === 0) why = 'No donors are at your exact spot. Try widening the radius.';
+    else if(S.lat != null && r < RAD_MAX) why = 'No donors within ' + radText(r) + '. Try a wider radius.';
+    box.innerHTML = '<div class="empty">' + why + ' <button class="link-btn" type="button" onclick="openAuth(\'register\')">Register as a donor</button> or <button class="link-btn" type="button" onclick="go(\'sos\')">raise an SOS</button>.</div>';
   }else{
     box.innerHTML = list.map((d, i) => {
       const contact = d.phone
@@ -710,14 +729,13 @@ function renderDonors(){
         '<div class="bg-badge' + (S.groups.rare.indexOf(d.blood_group) > -1 ? ' rare' : '') + '">' + esc(d.blood_group) + '</div>' +
         '<div class="d-body"><h4>' + esc(d.name) + (d.verified ? ' <span class="ver" title="ID photo verified">&#10004;</span>' : '') + '</h4>' +
         '<p>' + esc(d.city) + (d.org_name ? ' &middot; ' + esc(d.org_name) : '') + '</p>' +
-        '<p class="meta">' + esc(d.rank) + (d.distance_km != null ? ' &middot; ' + esc(d.distance_km) + ' km away' : '') +
+        '<p class="meta">' + esc(d.rank) + (d.distance_km != null ? ' &middot; ' + (Number(d.distance_km) <= EXACT_KM ? 'at your exact spot' : esc(d.distance_km) + ' km away') : '') +
         ' &middot; ' + (d.eligible ? '<span class="ok">eligible</span>' : '<span class="wait">resting</span>') + '</p>' +
         '<div class="d-act">' + contact + '</div></div></article>';
     }).join('');
   }
   renderMap();
 }
-
 /* ============================== MAP ============================== */
 const CITY_XY = {
   chennai:[13.0827,80.2707], coimbatore:[11.0168,76.9558], madurai:[9.9252,78.1198],
@@ -730,10 +748,8 @@ const CITY_XY = {
   lucknow:[26.8467,80.9462], puducherry:[11.9416,79.8083]
 };
 function cityLL(c){ return CITY_XY[String(c || '').trim().toLowerCase()] || null; }
-
 let map = null, layers = {}, campMarkers = {}, banksLoadedFor = '';
 const LAYER_ON = {donors:true, camps:true, sos:true, banks:false};
-
 function pin(cls, html){
   return L.divIcon({className:'', html:'<div class="pin ' + cls + '"><span>' + html + '</span></div>',
     iconSize:[36,36], iconAnchor:[18,34], popupAnchor:[0,-30]});
@@ -749,13 +765,11 @@ function initMap(){
   map.on('blur', () => map.scrollWheelZoom.disable());
 }
 function navLink(lat, lon){ return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(lat + ',' + lon); }
-
 function renderMap(){
   if(!map) return;
   Object.keys(layers).forEach(k => layers[k].clearLayers());
   campMarkers = {};
   const pts = [];
-
   /* donors: grouped by city, never exact positions */
   const by = {};
   filteredDonors().forEach(d => {
@@ -766,15 +780,14 @@ function renderMap(){
   Object.keys(by).forEach(k => {
     const g = by[k], cnt = {};
     g.list.forEach(d => { cnt[d.blood_group] = (cnt[d.blood_group] || 0) + 1; });
-    const rows = Object.keys(cnt).map(x => '<b>' + esc(x) + '</b> &times; ' + cnt[x]).join(' &nbsp; ');
+    const rows = Object.keys(cnt).map(x => '<b>' + esc(x) + '</b> &times; ' + cnt[x]).join('   ');
     L.marker(g.ll, {icon:pin('donor', g.list.length)})
       .bindPopup('<div class="pop"><h4>' + esc(g.city) + '</h4><p>' + g.list.length + ' donor(s)</p><p>' + rows + '</p><p class="meta">City-level only. Exact locations are never shown.</p></div>')
       .addTo(layers.donors);
     pts.push(g.ll);
   });
-
-  /* camps */
-  S.camps.forEach(c => {
+  /* camps (inside the radius) */
+  S.camps.filter(c => withinRad(c.distance_km, false)).forEach(c => {
     const ll = (c.lat != null && c.lon != null) ? [c.lat, c.lon] : cityLL(c.city);
     if(!ll) return;
     const m = L.marker(ll, {icon:pin('camp', '+')})
@@ -787,7 +800,6 @@ function renderMap(){
       .addTo(layers.camps);
     campMarkers[c.id] = m; pts.push(ll);
   });
-
   /* SOS */
   S.sos.forEach(s => {
     const ll = cityLL(s.city); if(!ll) return;
@@ -798,17 +810,24 @@ function renderMap(){
       .addTo(layers.sos);
     pts.push(ll);
   });
-
-  /* me */
+  /* me + radius ring */
+  let ring = null;
   if(S.lat != null){
     L.marker([S.lat, S.lon], {icon:L.divIcon({className:'', html:'<div class="me-dot"></div>', iconSize:[22,22], iconAnchor:[11,11]})})
       .bindPopup('You are here').addTo(layers.me);
+    const r = radVal();
+    if(r < RAD_MAX){
+      ring = L.circle([S.lat, S.lon], {
+        radius: r === 0 ? EXACT_KM * 1000 : r * 1000,
+        color:'#d90429', weight:2, dashArray:'6 6', fillColor:'#d90429', fillOpacity:.08
+      }).addTo(layers.me);
+    }
   }
-
   if(flyMe && S.lat != null){ map.flyTo([S.lat, S.lon], 11, {duration:1.4}); flyMe = false; wantFit = false; }
   else if(wantFit){
     wantFit = false;
-    if(S.lat != null) map.setView([S.lat, S.lon], 10);
+    if(ring) map.fitBounds(ring.getBounds(), {padding:[24, 24], maxZoom:16});
+    else if(S.lat != null) map.fitBounds(pts.concat([[S.lat, S.lon]]), {padding:[40, 40], maxZoom:10});
     else if(pts.length) map.fitBounds(pts, {padding:[40, 40], maxZoom:10});
     else map.setView([22.6, 79], 5);
   }
@@ -863,6 +882,8 @@ async function loadBanks(){
   }catch(_e){ toast('Could not load nearby places right now. Try again in a moment.'); }
 }
 function showCamp(id){
+  /* widen radius so the camp pin is on the map */
+  $('#fRad').value = RAD_MAX; renderDonors();
   go('find');
   setTimeout(() => {
     const m = campMarkers[id]; if(!map || !m) return;
@@ -870,7 +891,6 @@ function showCamp(id){
     setTimeout(() => m.openPopup(), 1300);
   }, 450);
 }
-
 /* ============================== SOS ============================== */
 $('#sosForm').addEventListener('submit', async e => {
   e.preventDefault();
@@ -897,7 +917,7 @@ $('#sosForm').addEventListener('submit', async e => {
   else if(d.sms_status === 'NO_RECIPIENTS') sms = 'No eligible registered donors were found in range yet. Please share on WhatsApp below.';
   else sms = 'SMS delivery failed. Please share on WhatsApp below.';
   res.className = 'result good';
-  res.innerHTML = '&#9989; SOS posted to the live board.<br>' + d.matched + ' matching donor(s) within ' + esc(d.radius) + ' km.<br>' + esc(sms) +
+  res.innerHTML = '&#9989; SOS posted to the live board.<br>' + esc(d.matched) + ' matching donor(s) within ' + esc(d.radius) + ' km.<br>' + esc(sms) +
     '<br><a class="btn sm wa" target="_blank" rel="noopener" href="' + esc(d.whatsapp) + '">Share on WhatsApp</a>';
   load();
 });
@@ -911,7 +931,6 @@ function renderSos(){
     '<p>' + (s.contact ? '<a href="tel:' + esc(s.contact) + '">' + esc(s.contact) + '</a>' : '<button class="link-btn" type="button" onclick="openAuth(\'login\')">Log in to see contact</button>') + '</p></div></div>'
   ).join('');
 }
-
 /* ============================== camps ============================== */
 function campCard(c, i, full){
   const dest = (c.lat != null && c.lon != null) ? c.lat + ',' + c.lon : (c.address || '') + ' ' + c.city;
@@ -949,7 +968,6 @@ function campClick(e){
 }
 $('#campList').addEventListener('click', campClick);
 $('#homeCamps').addEventListener('click', campClick);
-
 function openHost(){
   if(!S.me){ toast('Please log in to host a camp.'); openAuth('login'); return; }
   const t = new Date(); t.setDate(t.getDate() + 1);
@@ -968,7 +986,6 @@ $('#fHost').addEventListener('submit', async e => {
   if(!d.ok){ msg.textContent = d.error || 'Could not publish.'; msg.className = 'msg err'; return; }
   closeModal('m-host'); e.target.reset(); toast('Camp published!'); load();
 });
-
 /* ============================== matcher ============================== */
 function renderMatch(){
   const bg = $('#mBg').value, mode = $('#mMode').value;
@@ -979,7 +996,6 @@ function renderMatch(){
   $('#mOut').innerHTML = '<p class="lead-s">' + esc(lead) + '</p>' +
     list.map((g, i) => '<span class="chipg rise' + (S.groups.rare.indexOf(g) > -1 ? ' rare' : '') + '"' + stg(i) + '>' + esc(g) + '</span>').join('');
 }
-
 /* ============================== leaderboard ============================== */
 $('#boardTabs').addEventListener('click', e => {
   const b = e.target.closest('.tab'); if(!b) return;
@@ -1007,12 +1023,12 @@ function renderBoard(){
     '<div class="bar"><i style="width:' + Math.max(4, Math.round(x.points / max * 100)) + '%"></i></div></div>' +
     '<span class="pts">' + esc(x.points) + ' <small>PulsePoints</small></span></div>').join('');
 }
-
 /* ============================== donor pass ============================== */
 function renderPass(){
   const w = $('#passWrap'), m = S.me;
   if(!m){
-    w.innerHTML = '<div class="empty big-e">Create your free pass to get a verifiable donor ID with QR code.<br><button class="btn" type="button" onclick="openAuth(\'register\')">Create my pass</button> <button class="btn ghost" type="button" onclick="openAuth(\'login\')">I already have one</button></div>';
+    w.innerHTML = '<div class="empty big-e">Create your free pass to get a verifiable donor ID with QR code.<br>' +
+      '<button class="btn" type="button" onclick="openAuth(\'register\')">Create my pass</button> <button class="btn ghost" type="button" onclick="openAuth(\'login\')">I already have one</button></div>';
     return;
   }
   const marks = [0, 1, 2, 5, 10]; let prev = 0;
@@ -1023,7 +1039,7 @@ function renderPass(){
   w.innerHTML =
     '<div class="pass-grid"><div class="pass" id="passCard">' +
     '<div class="pass-top"><span class="logo sm" aria-hidden="true"><svg class="ic fill"><use href="#i-drop"/></svg></span><b>DONOR FINDER++</b><span class="pass-t">DONOR PASS</span></div>' +
-    '<div class="pass-mid"><div class="pass-bg">' + esc(m.blood_group) + '</div><div><h3>' + esc(m.name) + '</h3>' +
+    '<div class="pass-mid"><div class="pass-badge">' + esc(m.blood_group) + '</div><div><h3>' + esc(m.name) + '</h3>' +
     '<p class="rk">' + esc(m.rank) + '</p><p>' + esc(m.city) + (m.org_name ? ' &middot; ' + esc(m.org_name) : '') + '</p>' +
     '<p class="mono">ID ' + esc(m.uid) + '</p></div><div id="qrBox" class="qr"></div></div>' +
     '<div class="pass-stats"><span><b>' + esc(m.donations) + '</b> donations</span><span><b>' + esc(m.points) + '</b> PulsePoints</span><span>' + esc(ps) + '</span></div>' +
@@ -1042,7 +1058,6 @@ function renderPass(){
     $('#qrBox').innerHTML = '<a href="/verify/' + esc(m.uid) + '">Verify link</a>';
   }
 }
-
 /* ============================== log donation / eligibility ============================== */
 function openLog(){
   if(!S.me){ toast('Please log in first.'); openAuth('login'); return; }
@@ -1066,7 +1081,6 @@ function checkElig(){
   if(n === all.length){ m.className = 'msg ok'; m.textContent = 'Looks good to go. The hospital will still run its own checks, including haemoglobin, before you donate.'; }
   else{ m.className = 'msg err'; m.textContent = 'Some answers are not met. Please speak to the hospital doctor before donating. Do not donate if unwell.'; }
 }
-
 /* ============================== voice assistant ============================== */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 let vLang = 'en-IN', rec = null, listening = false;
@@ -1150,7 +1164,6 @@ $('#vForm').addEventListener('submit', e => {
   const v = $('#vText').value.trim(); if(!v) return;
   $('#vHeard').textContent = '\u201C' + v + '\u201D'; $('#vText').value = ''; handleVoice(v);
 });
-
 /* ============================== boot ============================== */
 setLang(LANG);
 go(location.hash.replace('#', '') || 'home');

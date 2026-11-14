@@ -409,7 +409,8 @@ def api_auth():
         last_donation = data.get("lastDonation") or None
         lat = float(data.get("latitude", 13.0827))
         lng = float(data.get("longitude", 80.2707))
-                masked_aadhaar = "XXXX-XXXX-" + (raw_aadhaar[-4:] if len(raw_aadhaar) >= 4 else "4589")
+
+        masked_aadhaar = "XXXX-        masked_aadhaar = "XXXX-XXXX-" + (raw_aadhaar[-4:] if len(raw_aadhaar) >= 4 else "4589")
         donor_uid = "DF-" + hashlib.md5(f"{phone}{time.time()}".encode()).hexdigest()[:6].upper()
 
         c.execute("""
@@ -436,5 +437,3 @@ def api_auth():
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
-
-        masked_aadhaar = "XXXX-

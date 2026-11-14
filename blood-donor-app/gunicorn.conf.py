@@ -1,5 +1,6 @@
-# Picked up automatically by `gunicorn app:app`. One worker with threads keeps live (SSE) connections in one process.
-worker_class = "gthread"
-workers = 1
-threads = 32
+import os
+
+bind = f"0.0.0.0:{os.environ.get('PORT', '5000')}"
+workers = 2
+threads = 4
 timeout = 120

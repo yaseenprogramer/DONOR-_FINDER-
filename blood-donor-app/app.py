@@ -44,6 +44,20 @@ def init_db():
         db = get_db()
         c = db.cursor()
 
+        # AUTO-MIGRATION: Detect and upgrade old database schemas automatically
+        try:
+            c.execute("PRAGMA table_info(donors)")
+            donor_cols = [r[1] for r in c.fetchall()]
+            if donor_cols and "donor_uid" not in donor_cols:
+                c.execute("DROP TABLE IF EXISTS donors")
+                c.execute("DROP TABLE IF EXISTS hospitals")
+                c.execute("DROP TABLE IF EXISTS blood_requests")
+                c.execute("DROP TABLE IF EXISTS camps")
+                c.execute("DROP TABLE IF EXISTS teams")
+                db.commit()
+        except Exception:
+            pass
+
         # Donors table
         c.execute("""
             CREATE TABLE IF NOT EXISTS donors (
@@ -410,7 +424,6 @@ def api_auth():
         lat = float(data.get("latitude", 13.0827))
         lng = float(data.get("longitude", 80.2707))
 
-        # Redact Aadhaar cleanly
         masked_aadhaar = "XXXX-XXXX-" + (raw_aadhaar[-4:] if len(raw_aadhaar) >= 4 else "4589")
         donor_uid = "DF-" + hashlib.md5(f"{phone}{time.time()}".encode()).hexdigest()[:6].upper()
 

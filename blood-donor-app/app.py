@@ -31,8 +31,9 @@ def init_db():
         cursor = db.cursor()
         
         # Donors table
+        cursor.execute('DROP TABLE IF EXISTS donors')
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS donors (
+            CREATE TABLE donors (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 donor_uid TEXT UNIQUE,
                 name TEXT NOT NULL,
@@ -50,7 +51,6 @@ def init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
-
         # Blood Camps table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS blood_camps (

@@ -3,920 +3,1484 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LifeStream | Smart Blood Donor Network & Emergency SOS</title>
+  <title>donorfinder++ | LifeStream Emergency Blood Network</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <!-- Google Fonts: DM Sans & Plus Jakarta Sans from your project -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&family=Mukta+Malar:wght@400;600;700&display=swap" rel="stylesheet">
-  <!-- QRCode.js for verifiable Digital Donor Pass -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Mukta+Malar:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Leaflet Map CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
-  <!-- TOP HEALTH SAFETY TICKER -->
-  <aside class="clinical-reminder-bar" aria-label="Pre-donation clinical safety alert">
-    <div class="container reminder-inner">
-      <span class="pulse-dot" aria-hidden="true"></span>
-      <p>
-        <strong>⚠️ Pre-Donation Clinical Checklist Reminder:</strong> Donors must undergo hospital hemoglobin (Hb &gt; 12.5 g/dL), blood pressure, weight (&gt; 45kg), and mandatory screening before donation. Ensure a 90-day cooldown between whole-blood donations.
-      </p>
-    </div>
-  </aside>
+  <div class="app-shell">
+    <!-- MOBILE SCRIM -->
+    <div id="sidebarScrim" class="sidebar-scrim" onclick="toggleSidebar(false)"></div>
 
-  <!-- NAVIGATION -->
-  <header class="navbar">
-    <div class="container nav-container">
-      <div class="brand">
-        <span class="brand-icon" aria-hidden="true">🩸</span>
-        <div>
-          <h1 class="brand-title">LifeStream</h1>
-          <span class="brand-sub">உயிர் காப்போம் • AI Blood Lifeline</span>
+    <!-- SIDEBAR NAVIGATION (Matching donorfinder++) -->
+    <aside id="sidebar" class="sidebar">
+      <button class="brand" onclick="navigate('overview')" aria-label="LifeStream home">
+        <span class="brand-mark">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="white" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          <span>+</span>
+        </span>
+        <span class="brand-copy">
+          <strong>donor<span>finder</span><sup>++</sup></strong>
+          <small>EVERY DROP MATTERS</small>
+        </span>
+      </button>
+
+      <div class="sidebar-nav">
+        <!-- MAIN MENU -->
+        <div class="nav-group">
+          <div class="nav-label">MAIN MENU</div>
+          <button class="nav-item active" id="nav-overview" onclick="navigate('overview')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+            <span>Overview</span>
+          </button>
+          <button class="nav-item" id="nav-donors" onclick="navigate('donors')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 21a8 8 0 0 0-16 0"/><circle cx="10" cy="8" r="5"/><path d="M22 20c0-3.37-2-6.5-5-8a5 5 0 0 0-.45-8.3"/></svg>
+            <span>Find Donors</span>
+          </button>
+          <button class="nav-item" id="nav-radar" onclick="navigate('radar')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span>Hospital Radar</span>
+          </button>
+          <button class="nav-item" id="nav-requests" onclick="navigate('requests')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/><path d="M12.56 6.6A10.97 10.97 0 0 0 14 3.02c.5 2.5 2 4.9 4 6.5s3 3.5 3 5.5a6.98 6.98 0 0 1-11.91 4.97"/></svg>
+            <span>Blood Requests</span>
+            <b id="sidebarRequestCount" class="nav-count">3</b>
+          </button>
+          <button class="nav-item" id="nav-camps" onclick="navigate('camps')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>Blood Camps</span>
+          </button>
+        </div>
+
+        <!-- COMMUNITY -->
+        <div class="nav-group">
+          <div class="nav-label">COMMUNITY & IMPACT</div>
+          <button class="nav-item" id="nav-leaderboard" onclick="navigate('leaderboard')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+            <span>LifeStream League 🏆</span>
+          </button>
+          <button class="nav-item" id="nav-donorid" onclick="navigate('donorid')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+            <span>My Digital Pass</span>
+          </button>
+          <button class="nav-item" id="nav-compatibility" onclick="navigate('compatibility')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>
+            <span>Compatibility</span>
+          </button>
+          <button class="nav-item" id="nav-gallery" onclick="navigate('gallery')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <span>Camp Photo Gallery</span>
+          </button>
         </div>
       </div>
-      <nav class="nav-links">
-        <a href="#emergency">Emergency SOS</a>
-        <a href="#find-donors">Find Donors</a>
-        <a href="#camps">Blood Camps</a>
-        <a href="#compatibility">Compatibility</a>
-        <a href="#lifestream-league">LifeStream League 🏆</a>
-        <a href="#gallery">Camp Gallery</a>
-      </nav>
-      <div class="nav-actions">
-        <button id="voiceBtn" class="btn-voice" onclick="toggleVoiceAssistant()" title="Bilingual Voice Assistant (English & தமிழ்)">
-          <span class="mic-icon">🎙️</span>
-          <span id="voiceStatusText">Voice AI</span>
+
+      <div class="sidebar-bottom">
+        <div class="sidebar-promo">
+          <div class="promo-heart">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+          <strong>A little help.<br/>A lot of hope.</strong>
+          <p>Be there for someone when it matters most.</p>
+          <button onclick="openRegisterModal()">
+            Become a Verified Donor
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+          <span class="promo-orbit one"></span>
+          <span class="promo-orbit two"></span>
+        </div>
+
+        <button class="sidebar-status" onclick="openNetworkModal()">
+          <span class="status-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+          </span>
+          <span>
+            <strong>SMS Dispatch Ready</strong>
+            <small>Radius automated alerts</small>
+          </span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
-        <button class="btn-sos-glow" onclick="openSosModal()">🚨 SOS BROADCAST</button>
       </div>
-    </div>
-  </header>
+    </aside>
 
-  <!-- BILINGUAL VOICE ASSISTANT FLOATING HUD -->
-  <div id="voiceHud" class="voice-hud hidden">
-    <div class="voice-hud-header">
-      <span class="hud-indicator active"></span>
-      <span id="hudLanguageBadge" class="lang-badge">Tamil & English Live</span>
-      <button class="close-hud" onclick="closeVoiceHud()">✕</button>
-    </div>
-    <div class="hud-body">
-      <p id="voiceTranscript" class="transcript-text">Listening... பேசுங்கள்... (Try: "Emergency O+ blood" or "அருகிலுள்ள இரத்த முகாம்கள்")</p>
-      <div class="hud-wave">
-        <span></span><span></span><span></span><span></span><span></span>
-      </div>
-    </div>
-    <div class="hud-shortcuts">
-      <small>Commands: "Find Bombay Blood", "Show camps", "Emergency A+", "எனது அடையாள அட்டை"</small>
-    </div>
-  </div>
-
-  <main>
-    <!-- HERO SECTION WITH LIVE IMPACT TICKER -->
-    <section class="hero-section">
-      <div class="container hero-grid">
-        <div class="hero-content">
-          <div class="badge-rare-group">⚡ Rare Groups Supported: Bombay (hh), Rh-Null, INRA</div>
-          <h2 class="hero-heading">Instant Life Saving Blood Rescue Network</h2>
-          <p class="hero-desc">
-            Direct donor-to-patient matching, GPS-sorted donation camps, and AI duplicate-filtered emergency SOS broadcasting. Verifiable Aadhaar-masked credentials for authentic donors.
-          </p>
-          <div class="hero-buttons">
-            <button class="btn-primary" onclick="scrollToSection('find-donors')">Find Nearby Donor</button>
-            <button class="btn-secondary" onclick="openRegisterModal()">Register as Lifesaver</button>
-          </div>
-        </div>
-
-        <!-- REAL-TIME IMPACT TICKER -->
-        <div class="impact-card">
-          <h3 class="impact-title">Real-Time Impact Counter</h3>
-          <div class="ticker-grid">
-            <div class="metric-box">
-              <span class="metric-num" id="statLives">3,450+</span>
-              <span class="metric-label">Lives Saved</span>
-            </div>
-            <div class="metric-box">
-              <span class="metric-num" id="statUnits">1,150</span>
-              <span class="metric-label">Units Donated</span>
-            </div>
-            <div class="metric-box">
-              <span class="metric-num" id="statDonors">850+</span>
-              <span class="metric-label">Active Lifesavers</span>
-            </div>
-            <div class="metric-box">
-              <span class="metric-num" id="statResponse">98.4%</span>
-              <span class="metric-label">SOS Response Rate</span>
-            </div>
-          </div>
-          <div class="ticker-footer">
-            <span>⚡ Automated SMS & WhatsApp Dispatched in 10s</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- SEARCH & DONOR FINDER SECTION -->
-    <section id="find-donors" class="section">
-      <div class="container">
-        <div class="section-header">
-          <span class="sub-badge">Live Matching</span>
-          <h2>Find Compatible Voluntary Donors Near You</h2>
-          <p>Filter by standard and rare blood types with instant GPS distance sorting.</p>
-        </div>
-
-        <div class="search-bar-card">
-          <div class="form-row">
-            <div class="input-group">
-              <label for="searchBloodGroup">Blood Group</label>
-              <select id="searchBloodGroup">
-                <option value="ALL">All Blood Groups</option>
-                <optgroup label="Standard Groups">
-                  <option value="O+">O Positive (O+)</option>
-                  <option value="O-">O Negative (O-)</option>
-                  <option value="A+">A Positive (A+)</option>
-                  <option value="A-">A Negative (A-)</option>
-                  <option value="B+">B Positive (B+)</option>
-                  <option value="B-">B Negative (B-)</option>
-                  <option value="AB+">AB Positive (AB+)</option>
-                  <option value="AB-">AB Negative (AB-)</option>
-                </optgroup>
-                <optgroup label="Rare & Ultra-Rare Groups">
-                  <option value="Bombay Blood (hh)">Bombay Blood (hh / Oh)</option>
-                  <option value="Rh-null (Golden)">Rh-null ("Golden Blood")</option>
-                  <option value="INRA">INRA (Rare)</option>
-                  <option value="A1+">A1 Positive (A1+)</option>
-                  <option value="A1-">A1 Negative (A1-)</option>
-                  <option value="A2+">A2 Positive (A2+)</option>
-                  <option value="A2-">A2 Negative (A2-)</option>
-                </optgroup>
-              </select>
-            </div>
-            <div class="input-group">
-              <label for="searchCity">City / College / Institution</label>
-              <input type="text" id="searchCity" placeholder="e.g. Chennai, Madurai, USTM...">
-            </div>
-            <div class="input-group">
-              <label for="searchRadius">Max Distance</label>
-              <select id="searchRadius">
-                <option value="15">Within 15 km</option>
-                <option value="30" selected>Within 30 km</option>
-                <option value="75">Within 75 km</option>
-                <option value="200">Statewide (200 km)</option>
-              </select>
-            </div>
-            <div class="input-group btn-col">
-              <button class="btn-primary" onclick="searchDonors()">Search Donors</button>
-              <button class="btn-outline" onclick="detectLocationAndSearch()">📍 Near Me</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- DONOR RESULTS GRID -->
-        <div id="donorsGrid" class="donors-grid">
-          <!-- Populated by JavaScript -->
-        </div>
-      </div>
-    </section>
-
-    <!-- NEARBY BLOOD CAMP COORDINATION NETWORK -->
-    <section id="camps" class="section bg-tint">
-      <div class="container">
-        <div class="section-header">
-          <span class="sub-badge">Community Outreach</span>
-          <h2>Nearby Blood Camp Co-Ordination Network</h2>
-          <p>Live GPS-sorted upcoming blood donation drives organized by colleges, NSS cells, and hospitals.</p>
-        </div>
-
-        <div id="campsContainer" class="camps-grid">
-          <!-- Loaded via API -->
-        </div>
-      </div>
-    </section>
-
-    <!-- REAL-LIFE CAMP GALLERY SECTION (IMAGE INTEGRATION) -->
-    <section id="gallery" class="section">
-      <div class="container">
-        <div class="section-header">
-          <span class="sub-badge">On Ground Impact</span>
-          <h2>Voluntary Camp Gallery & Certificates of Honor</h2>
-          <p>Real-life snapshots from our blood donation camps organized in association with NSS Cell & Medical Centers.</p>
-        </div>
-
-        <div class="gallery-grid">
-          <div class="gallery-card featured">
-            <!-- Reference the real photo saved in static -->
-            <img src="{{ url_for('static', filename='camp-photo1.jpg') }}" onerror="this.src='https://images.unsplash.com/photo-1615461066841-6116e61058f4?auto=format&fit=crop&w=1200&q=80'" alt="NSS Blood Donation Camp Felicitation & Donors" class="gallery-img">
-            <div class="gallery-overlay">
-              <h4>Voluntary Blood Donation Camp</h4>
-              <p>State University & NSS Cell in collaboration with Blood Centre, P.A. Sangma International Medical College & Hospital (PIMC).</p>
-              <span class="chip">🏅 85+ Units Collected</span>
-            </div>
-          </div>
-          <div class="gallery-card">
-            <div class="placeholder-camp-box">
-              <span class="camp-icon">🏥</span>
-              <h4>Pre-Donation Eligibility Camp</h4>
-              <p>On-site Hemoglobin, Vitals, and Blood Pressure testing before student donation.</p>
-              <button class="btn-sm" onclick="scrollToSection('camps')">View Schedule</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- INTERACTIVE BLOOD COMPATIBILITY MATCHER -->
-    <section id="compatibility" class="section bg-tint">
-      <div class="container">
-        <div class="section-header">
-          <span class="sub-badge">Clinical Cross-Match</span>
-          <h2>Blood Compatibility Quick Matcher</h2>
-          <p>Instant safety cross-reference tool for safe donor-recipient pairings.</p>
-        </div>
-
-        <div class="matcher-card">
-          <div class="matcher-selector">
-            <label for="matchGroupSelect">Select Recipient Patient's Blood Group:</label>
-            <select id="matchGroupSelect" onchange="updateCompatibility()">
-              <option value="O+">O Positive (O+)</option>
-              <option value="O-">O Negative (O-) [Universal Red Cell Donor]</option>
-              <option value="A+">A Positive (A+)</option>
-              <option value="A-">A Negative (A-)</option>
-              <option value="B+">B Positive (B+)</option>
-              <option value="B-">B Negative (B-)</option>
-              <option value="AB+">AB Positive (AB+) [Universal Recipient]</option>
-              <option value="AB-">AB Negative (AB-)</option>
-              <option value="Bombay Blood (hh)">Bombay Blood (hh / Oh)</option>
-              <option value="Rh-null (Golden)">Rh-null (Golden Blood)</option>
-            </select>
-          </div>
-
-          <div class="compatibility-result-grid">
-            <div class="result-box can-receive">
-              <h4>✅ Patient Can Safely Receive From:</h4>
-              <div id="canReceiveList" class="badge-tag-list"></div>
-            </div>
-            <div class="result-box can-give">
-              <h4>🩸 If Patient Donates, They Can Give To:</h4>
-              <div id="canGiveList" class="badge-tag-list"></div>
-            </div>
-          </div>
-          <div class="matcher-note">
-            ℹ️ <em>Note for Rare Groups: Bombay (hh) individuals can <strong>only</strong> receive from other Bombay (hh) donors. Rh-null individuals can <strong>only</strong> receive Rh-null blood.</em>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- GAMIFIED LEADERBOARD: "LIFESTREAM LEAGUE" -->
-    <section id="lifestream-league" class="section">
-      <div class="container">
-        <div class="section-header">
-          <span class="sub-badge">Institutional Pride</span>
-          <h2>The LifeStream League (உயிர்த்துளி அரங்கம்)</h2>
-          <p>Gamified College, Department & Hostel Leaderboard. Honoring our champion lifesaver communities.</p>
-        </div>
-
-        <div class="league-grid">
-          <!-- Department / Hostel Standings -->
-          <div class="league-card">
-            <div class="league-card-header">
-              <h3>🏆 Department & Hostel Standings</h3>
-              <span class="season-badge">Season 2026</span>
-            </div>
-            <table class="league-table">
-              <thead>
-                <tr>
-                  <th>Rank</th>
-                  <th>Department / Hostel</th>
-                  <th>Institution</th>
-                  <th>Units</th>
-                  <th>Badge</th>
-                </tr>
-              </thead>
-              <tbody id="deptLeaderboardBody">
-                <!-- Dynamically loaded -->
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Top Lifesaver Champions -->
-          <div class="league-card">
-            <div class="league-card-header">
-              <h3>🎖️ Apex Lifesavers Hall of Fame</h3>
-              <span class="season-badge">Top Donors</span>
-            </div>
-            <div id="topDonorsList" class="apex-donors-list">
-              <!-- Dynamically loaded -->
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- EMERGENCY SOS MODAL WITH DUPLICATE FILTER -->
-  <div id="sosModal" class="modal-backdrop hidden">
-    <div class="modal-card emergency-border">
-      <div class="modal-header emergency-bg">
-        <h3>🚨 Emergency SOS Broadcast</h3>
-        <button class="modal-close" onclick="closeSosModal()">✕</button>
-      </div>
-      <div class="modal-body">
-        <p class="modal-notice">
-          Dispatches instant SMS and WhatsApp emergency alerts to all verified donors within radius.
+    <!-- MAIN SHELL -->
+    <div class="main-shell">
+      <!-- MANDATORY PRE-DONATION CLINICAL CHECKUP REMINDER -->
+      <aside class="clinical-top-banner" aria-label="Pre-donation clinical notice">
+        <span class="banner-pulse-dot"></span>
+        <p>
+          <strong>⚠️ Pre-Donation Clinical Checklist Reminder:</strong> Donors must undergo mandatory clinical checkup (Hemoglobin &gt; 12.5 g/dL, blood pressure 120/80, weight &gt; 45kg) at a hospital or certified blood bank before donation. The 90-day recovery cooldown is strictly enforced.
         </p>
+      </aside>
 
-        <form id="sosForm" onsubmit="submitSosBroadcast(event)">
-          <div class="form-group">
-            <label>Patient Full Name</label>
-            <input type="text" id="sosPatientName" required placeholder="e.g. Ramesh Kumar">
-          </div>
-          <div class="form-group">
-            <label>Blood Group Required *</label>
-            <select id="sosBloodGroup" required>
-              <option value="O+">O Positive (O+)</option>
-              <option value="O-">O Negative (O-)</option>
-              <option value="A+">A Positive (A+)</option>
-              <option value="A-">A Negative (A-)</option>
-              <option value="B+">B Positive (B+)</option>
-              <option value="B-">B Negative (B-)</option>
-              <option value="AB+">AB Positive (AB+)</option>
-              <option value="AB-">AB Negative (AB-)</option>
-              <option value="Bombay Blood (hh)">Bombay Blood (hh / Oh)</option>
-              <option value="Rh-null (Golden)">Rh-null ("Golden Blood")</option>
-              <option value="A1+">A1 Positive (A1+)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Hospital & Room / Ward *</label>
-            <input type="text" id="sosHospital" required placeholder="e.g. P.A. Sangma Medical College / GH Chennai, ICU-3">
-          </div>
-          <div class="form-group">
-            <label>Attender Emergency Phone Number *</label>
-            <input type="tel" id="sosPhone" required placeholder="e.g. 9876543210">
-          </div>
-          <div class="form-group">
-            <label>Broadcast Radius</label>
-            <select id="sosRadius">
-              <option value="15">Within 15 km</option>
-              <option value="25" selected>Within 25 km (Standard)</option>
-              <option value="50">Within 50 km (Urgent)</option>
-            </select>
-          </div>
-
-          <div id="sosAlertBox" class="alert-box hidden"></div>
-
-          <button type="submit" id="btnSubmitSos" class="btn-sos-submit">
-            📡 Broadcast Emergency SOS to Nearby Donors
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="icon-button mobile-menu" onclick="toggleSidebar(true)" aria-label="Open menu">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- DONOR REGISTRATION MODAL WITH AADHAAR REDACTION -->
-  <div id="registerModal" class="modal-backdrop hidden">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3>Register as a Voluntary Lifesaver</h3>
-        <button class="modal-close" onclick="closeRegisterModal()">✕</button>
-      </div>
-      <div class="modal-body">
-        <form id="registerForm" onsubmit="submitDonorRegistration(event)">
-          <div class="form-group">
-            <label>Your Full Name</label>
-            <input type="text" id="regName" required placeholder="e.g. Karthikeyan S">
-          </div>
-          <div class="form-row-2">
-            <div class="form-group">
-              <label>Blood Group</label>
-              <select id="regBloodGroup" required>
-                <option value="O+">O Positive (O+)</option>
-                <option value="O-">O Negative (O-)</option>
-                <option value="A+">A Positive (A+)</option>
-                <option value="A-">A Negative (A-)</option>
-                <option value="B+">B Positive (B+)</option>
-                <option value="B-">B Negative (B-)</option>
-                <option value="AB+">AB Positive (AB+)</option>
-                <option value="AB-">AB Negative (AB-)</option>
-                <option value="Bombay Blood (hh)">Bombay Blood (hh / Oh)</option>
-                <option value="Rh-null (Golden)">Rh-null (Golden)</option>
-                <option value="A1+">A1 Positive</option>
-                <option value="A1-">A1 Negative</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Mobile Number (For Emergency Alerts)</label>
-              <input type="tel" id="regPhone" required placeholder="10-digit number">
-            </div>
-          </div>
-
-          <div class="form-row-2">
-            <div class="form-group">
-              <label>Department / Hostel</label>
-              <input type="text" id="regDept" placeholder="e.g. CSE Dept / Hostel B">
-            </div>
-            <div class="form-group">
-              <label>College / Organization</label>
-              <input type="text" id="regInstitution" placeholder="e.g. USTM / Anna Univ">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>City</label>
-            <input type="text" id="regCity" required placeholder="e.g. Chennai, Madurai, Guwahati">
-          </div>
-
-          <!-- AADHAAR REDACTION & PHOTO PREVIEW -->
-          <div class="aadhaar-section">
-            <label><strong>Aadhaar Redaction Verification</strong> (Privacy Preserving)</label>
-            <p class="small-text">Only the last 4 digits are verified. First 8 digits are cryptographically masked.</p>
-            <input type="text" id="regAadhaar" maxlength="14" placeholder="Enter 12-digit Aadhaar" oninput="maskAadhaarLive(this)" required>
-            <div id="aadhaarMaskBadge" class="aadhaar-badge">
-              🔒 Preview: <span id="maskedPreview">XXXX-XXXX-____</span> (Encrypted)
-            </div>
-          </div>
-
-          <button type="submit" class="btn-primary full-width" style="margin-top: 15px;">
-            Join LifeStream Network
-          </button>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- DIGITAL DONOR ID PASS MODAL (GAMIFIED) -->
-  <div id="passModal" class="modal-backdrop hidden">
-    <div class="modal-card pass-card-container">
-      <div class="modal-header">
-        <h3>Official Digital Donor Pass</h3>
-        <button class="modal-close" onclick="closePassModal()">✕</button>
-      </div>
-      <div class="modal-body pass-body">
-        <div class="digital-donor-pass" id="printPassArea">
-          <div class="pass-header">
-            <div>
-              <h4>LIFESTREAM VOLUNTARY DONOR</h4>
-              <small>Government & NSS Affiliated Digital ID</small>
-            </div>
-            <span class="verified-icon">🛡️ VERIFIED</span>
-          </div>
-          <div class="pass-content">
-            <div class="pass-details">
-              <p><strong>Name:</strong> <span id="passName">--</span></p>
-              <p><strong>Blood Group:</strong> <span id="passGroup" class="blood-chip">--</span></p>
-              <p><strong>Donor ID:</strong> <span id="passUid">--</span></p>
-              <p><strong>Aadhaar (Redacted):</strong> <span id="passAadhaar">--</span></p>
-              <p><strong>Rank:</strong> <span id="passRank" class="rank-tag">Plasma Pioneer</span></p>
-            </div>
-            <div class="pass-qr" id="passQrCode"></div>
-          </div>
-          <div class="pass-footer">
-            <span>Valid across all verified Blood Banks & Camps</span>
+          <div class="breadcrumb">
+            <span>Pages</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+            <strong id="viewTitleBreadcrumb">Overview</strong>
           </div>
         </div>
-        <button class="btn-outline full-width" onclick="window.print()" style="margin-top: 15px;">🖨️ Download / Print Donor Pass</button>
-      </div>
-    </div>
-  </div>
 
-  <!-- FOOTER -->
-  <footer class="footer">
-    <div class="container footer-content">
-      <p>© 2026 LifeStream Blood Lifeline. Dedicated to NSS & Voluntary Blood Heroes across India.</p>
-      <p class="tamil-quote">"இரத்த தானம் செய்வோம் • உயிர்களைக் காப்போம்"</p>
-    </div>
-  </footer>
+        <div class="topbar-right">
+          <div class="global-search">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input id="globalSearchInput" placeholder="Search the network..." oninput="handleSearch(this.value)" />
+            <span class="search-shortcut">⌘ K</span>
+            <div id="searchDropdown" class="search-dropdown hidden"></div>
+          </div>
 
-  <script>
-    // Global User Coordinates
-    let userLocation = { lat: 13.0827, lon: 80.2707 }; // Default Chennai center
-    let isListening = false;
-    let recognition = null;
+          <!-- BILINGUAL VOICE ASSISTANT BUTTON (English & தமிழ்) -->
+          <button class="top-icon voice-top" onclick="openVoiceModal()" title="Bilingual Voice Assistant (English & தமிழ்)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+          </button>
 
-    // Compatibility Matrix including Bombay & Rh-null
-    const compatibilityMatrix = {
-      "O+": { receive: ["O+", "O-"], give: ["O+", "A+", "B+", "AB+"] },
-      "O-": { receive: ["O-"], give: ["All standard groups (Universal Red Cell)"] },
-      "A+": { receive: ["A+", "A-", "O+", "O-"], give: ["A+", "AB+"] },
-      "A-": { receive: ["A-", "O-"], give: ["A+", "A-", "AB+", "AB-"] },
-      "B+": { receive: ["B+", "B-", "O+", "O-"], give: ["B+", "AB+"] },
-      "B-": { receive: ["B-", "O-"], give: ["B+", "B-", "AB+", "AB-"] },
-      "AB+": { receive: ["All Standard Groups (Universal Recipient)"], give: ["AB+ only"] },
-      "AB-": { receive: ["AB-", "A-", "B-", "O-"], give: ["AB+", "AB-"] },
-      "Bombay Blood (hh)": { receive: ["Bombay Blood (hh) ONLY"], give: ["All standard groups (Universal Donor)"] },
-      "Rh-null (Golden)": { receive: ["Rh-null ONLY"], give: ["All standard groups"] }
-    };
+          <button class="top-icon notification" onclick="navigate('requests')" title="Active Blood Requests">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <i id="notifDot"></i>
+          </button>
 
-    // Initialize Page
-    document.addEventListener("DOMContentLoaded", () => {
-      fetchStats();
-      searchDonors();
-      fetchCamps();
-      fetchLeaderboard();
-      updateCompatibility();
-      initSpeechRecognition();
-    });
+          <span class="top-divider"></span>
 
-    // Stats Counter
-    async function fetchStats() {
-      try {
-        const res = await fetch("/api/stats");
-        const data = await res.json();
-        if (data.success) {
-          document.getElementById("statLives").innerText = data.lives_saved + "+";
-          document.getElementById("statUnits").innerText = data.units_collected;
-          document.getElementById("statDonors").innerText = data.active_lifesavers + "+";
-          document.getElementById("statResponse").innerText = data.emergency_response_rate;
-        }
-      } catch (e) {
-        console.error("Stats fetch error:", e);
-      }
-    }
+          <button class="top-profile" onclick="navigate('donorid')">
+            <span class="top-avatar" id="userAvatarInitials">PS</span>
+            <span class="profile-copy">
+              <strong id="userNameTop">Priya Sharma</strong>
+              <small id="userSubTop">Aadhaar Verified</small>
+            </span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </div>
+      </header>
 
-    // Search Donors
-    async function searchDonors() {
-      const bloodGroup = document.getElementById("searchBloodGroup").value;
-      const city = document.getElementById("searchCity").value;
-      const radius = document.getElementById("searchRadius").value;
+      <!-- CONTENT SECTIONS -->
+      <main class="content">
 
-      let url = `/api/donors?blood_group=${encodeURIComponent(bloodGroup)}&city=${encodeURIComponent(city)}&radius=${radius}`;
-      if (userLocation.lat && userLocation.lon) {
-        url += `&lat=${userLocation.lat}&lon=${userLocation.lon}`;
-      }
-
-      const grid = document.getElementById("donorsGrid");
-      grid.innerHTML = "<div class='loading'>Searching verified lifesavers...</div>";
-
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-        if (data.success && data.donors.length > 0) {
-          grid.innerHTML = data.donors.map(d => `
-            <div class="donor-card">
-              <div class="donor-card-top">
-                <span class="blood-badge ${d.blood_group.includes('Bombay') || d.blood_group.includes('Rh-null') ? 'rare' : ''}">${d.blood_group}</span>
-                <span class="verified-badge">✓ Aadhaar Verified</span>
-              </div>
-              <h3 class="donor-name">${d.name}</h3>
-              <p class="donor-org">🏛️ ${d.department} • ${d.institution}</p>
-              <p class="donor-loc">📍 ${d.city} ${d.distance_km !== null ? `(${d.distance_km} km away)` : ''}</p>
-              <div class="donor-meta">
-                <span>🩸 ${d.donations_count} Donations</span>
-                <span>🔒 ${d.aadhaar_masked || 'XXXX-XXXX-Verified'}</span>
-              </div>
-              <div class="donor-actions">
-                <a href="tel:${d.phone}" class="btn-sm btn-call">📞 Call Donor</a>
-                <button class="btn-sm btn-pass" onclick="viewDigitalPass('${d.donor_uid}', '${d.name}', '${d.blood_group}', '${d.aadhaar_masked}', ${d.donations_count})">🪪 Digital Pass</button>
-              </div>
+        <!-- 1. VIEW: OVERVIEW -->
+        <section id="view-overview" class="view-panel">
+          <div class="view-heading">
+            <div>
+              <div class="eyebrow">YOUR COMMUNITY AT A GLANCE</div>
+              <h1>Hello, Lifesaver!</h1>
+              <p>Here&apos;s what&apos;s happening in your emergency donor network today.</p>
             </div>
-          `).join('');
-        } else {
-          grid.innerHTML = `
-            <div class="no-donors">
-              <p>No matching donors found in this radius. Use the <strong>🚨 SOS Broadcast</strong> to notify standby lifesavers immediately!</p>
+            <div class="heading-actions">
+              <button class="button secondary locate-button" onclick="detectGPS()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc4052" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span id="overviewLocLabel">Chennai, Tamil Nadu</span>
+              </button>
+              <button class="button primary sos-button" onclick="openSosModal()">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Raise an SOS Broadcast
+              </button>
             </div>
-          `;
-        }
-      } catch (err) {
-        grid.innerHTML = "<div class='error'>Error loading donors. Please try again.</div>";
-      }
-    }
+          </div>
 
-    // Geolocation Helper
-    function detectLocationAndSearch() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          pos => {
-            userLocation.lat = pos.coords.latitude;
-            userLocation.lon = pos.coords.longitude;
-            alert("📍 GPS Location detected! Sorting donors and camps by nearest distance.");
-            searchDonors();
-            fetchCamps();
-          },
-          err => {
-            alert("Could not retrieve GPS coordinates. Defaulting to regional center.");
-          }
-        );
-      } else {
-        alert("Geolocation is not supported by your browser.");
-      }
-    }
-
-    // Blood Camps Network
-    async function fetchCamps() {
-      let url = "/api/camps";
-      if (userLocation.lat && userLocation.lon) {
-        url += `?lat=${userLocation.lat}&lon=${userLocation.lon}`;
-      }
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-        const container = document.getElementById("campsContainer");
-        if (data.success && data.camps.length > 0) {
-          container.innerHTML = data.camps.map(c => `
-            <div class="camp-card">
-              <div class="camp-date-badge">
-                <span class="camp-month">${c.camp_date.split('-')[1]}</span>
-                <span class="camp-day">${c.camp_date.split('-')[2]}</span>
+          <!-- REAL-TIME IMPACT COUNTER TICKER -->
+          <section class="impact-banner">
+            <div class="impact-art">
+              <div class="impact-art-inner">
+                <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5v14"/></svg>
               </div>
-              <div class="camp-info">
-                <h4>${c.camp_name}</h4>
-                <p class="camp-organizer">Organized by: <strong>${c.organizer}</strong></p>
-                <p class="camp-venue">📍 ${c.venue}, ${c.city} ${c.distance_km !== null ? `<span class="dist-tag">(${c.distance_km} km)</span>` : ''}</p>
-                <p class="camp-time">⏰ ${c.timing}</p>
-                <div class="camp-actions">
-                  <a href="https://maps.google.com/?q=${encodeURIComponent(c.venue + ', ' + c.city)}" target="_blank" class="btn-sm btn-map">🗺️ Directions</a>
-                  <a href="tel:${c.contact_phone}" class="btn-sm btn-outline">📞 Inquire</a>
+              <span class="art-dot dot-one"></span>
+              <span class="art-dot dot-two"></span>
+            </div>
+            <div class="impact-message">
+              <div class="impact-overline">⚡ THE GOLDEN HOUR MATTERS • RARE GROUPS INCLUDED</div>
+              <h2>Every second counts. Every donor matters.</h2>
+              <p>Together, we ensure no one waits for a lifesaving drop of blood.</p>
+            </div>
+            <div class="impact-metrics">
+              <div>
+                <span>AVG. RESPONSE TIME</span>
+                <strong>1m 48s</strong>
+                <small>When minutes count</small>
+              </div>
+              <div>
+                <span>LIVES SAVED</span>
+                <strong id="statLivesSaved">3,744</strong>
+                <small>Real-time impact</small>
+              </div>
+              <div class="impact-demo">LIVE TICKER</div>
+            </div>
+          </section>
+
+          <!-- STATS GRID -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-head">
+                <span>Available Donors</span>
+                <span class="stat-icon coral">👥</span>
+              </div>
+              <strong id="statDonorCount">12</strong>
+              <p><span class="stat-dot green"></span> Aadhaar verified</p>
+              <div class="stat-decoration"></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-head">
+                <span>Blood Banks</span>
+                <span class="stat-icon blue-bg">🏥</span>
+              </div>
+              <strong id="statHospitalCount">4</strong>
+              <p><span class="stat-dot blue-dot"></span> In radar network</p>
+              <div class="stat-decoration blue-deco"></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-head">
+                <span>Active SOS Requests</span>
+                <span class="stat-icon pink-bg">🩸</span>
+              </div>
+              <strong id="statRequestCount">3</strong>
+              <p><span class="stat-dot red-dot"></span> Spam filtered</p>
+              <div class="stat-decoration"></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-head">
+                <span>Upcoming Blood Camps</span>
+                <span class="stat-icon gold-bg">📅</span>
+              </div>
+              <strong id="statCampCount">3</strong>
+              <p><span class="stat-dot gold-dot"></span> NSS & Hospital drives</p>
+              <div class="stat-decoration gold-deco"></div>
+            </div>
+          </div>
+
+          <!-- RADAR MAP & URGENT SOS REQUESTS -->
+          <div class="dashboard-grid">
+            <section class="card radar-card">
+              <div class="card-top radar-card-top">
+                <div class="card-title-with-icon">
+                  <span class="title-icon">📡</span>
+                  <div>
+                    <h2>Live Donor Radar <span class="tiny-live"><i></i> LIVE</span></h2>
+                    <p>Find help near you, in real time</p>
+                  </div>
+                </div>
+                <div class="radar-filters">
+                  <select id="radarBloodFilter" onchange="filterRadar()">
+                    <option value="All groups">All blood groups</option>
+                    <optgroup label="Standard Groups">
+                      <option value="O+">O+</option><option value="O-">O-</option>
+                      <option value="A+">A+</option><option value="A-">A-</option>
+                      <option value="B+">B+</option><option value="B-">B-</option>
+                      <option value="AB+">AB+</option><option value="AB-">AB-</option>
+                    </optgroup>
+                    <optgroup label="Rare Groups">
+                      <option value="Bombay (hh)">Bombay (hh)</option>
+                      <option value="Rh-null">Rh-null ("Golden")</option>
+                      <option value="A1+">A1+</option><option value="A1-">A1-</option>
+                    </optgroup>
+                  </select>
+                  <select id="radarRadiusFilter" onchange="filterRadar()">
+                    <option value="10">10 km</option>
+                    <option value="25" selected>25 km</option>
+                    <option value="50">50 km</option>
+                    <option value="100">100 km</option>
+                  </select>
+                  <button class="icon-button expand-map" onclick="navigate('radar')">↗</button>
                 </div>
               </div>
-            </div>
-          `).join('');
-        }
-      } catch (e) {
-        console.error("Camps loading error:", e);
-      }
-    }
-
-    // LifeStream League Leaderboard
-    async function fetchLeaderboard() {
-      try {
-        const res = await fetch("/api/leaderboard");
-        const data = await res.json();
-        if (data.success) {
-          const tbody = document.getElementById("deptLeaderboardBody");
-          tbody.innerHTML = data.departments.map((d, index) => {
-            let medal = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `#${index + 1}`;
-            return `
-              <tr>
-                <td><strong>${medal}</strong></td>
-                <td><strong>${d.department}</strong></td>
-                <td>${d.institution}</td>
-                <td><span class="units-badge">${d.total_units} Units</span></td>
-                <td><span class="badge-tag">${d.total_units > 10 ? '👑 Crimson Guild' : '⭐ Pulse Active'}</span></td>
-              </tr>
-            `;
-          }).join('');
-
-          const apexDiv = document.getElementById("topDonorsList");
-          apexDiv.innerHTML = data.top_individuals.map((ind, i) => `
-            <div class="apex-donor-row">
-              <span class="apex-rank">${i + 1}</span>
-              <div>
-                <strong>${ind.name}</strong> (${ind.blood_group})
-                <small class="block-sub">${ind.department} • ${ind.institution}</small>
+              <div id="overviewMap" class="radar-map-wrap" style="height: 290px;"></div>
+              <div class="map-footer">
+                <div class="map-legend">
+                  <span><i class="legend-dot red"></i> Available donors <b id="legendDonorCount">7</b></span>
+                  <span><i class="legend-dot blue"></i> Blood banks <b id="legendHospCount">4</b></span>
+                  <span><i class="legend-dot location"></i> Your GPS area</span>
+                </div>
+                <button class="text-link" onclick="detectGPS()">📍 Locate me</button>
               </div>
-              <span class="apex-count">🩸 ${ind.donations_count} Donations</span>
+            </section>
+
+            <!-- URGENT REQUESTS PREVIEWS -->
+            <section class="card requests-card">
+              <div class="card-top">
+                <div class="card-title-with-icon">
+                  <span class="title-icon pale">🩸</span>
+                  <div>
+                    <h2>Urgent Blood SOS</h2>
+                    <p>Someone needs your help</p>
+                  </div>
+                </div>
+                <span class="live-chip"><i></i> LIVE</span>
+              </div>
+              <div id="overviewRequestPreviews" class="request-previews">
+                <!-- Dynamically populated -->
+              </div>
+              <button class="card-bottom-link" onclick="navigate('requests')">
+                View all emergency requests →
+              </button>
+            </section>
+          </div>
+
+          <!-- LOWER ROW: NEARBY DONORS & CAMPS -->
+          <div class="dashboard-lower">
+            <section class="card nearby-card">
+              <div class="section-heading">
+                <div>
+                  <h2>Nearby Donors</h2>
+                  <p>Kind hearts, close to you</p>
+                </div>
+                <button class="text-link" onclick="navigate('donors')">View all →</button>
+              </div>
+              <div id="overviewDonorsList" class="donor-list"></div>
+            </section>
+
+            <section class="card camp-preview-card">
+              <div class="section-heading">
+                <div>
+                  <h2>Upcoming Blood Camps</h2>
+                  <p>Small acts, big impact</p>
+                </div>
+                <button class="text-link" onclick="navigate('camps')">View all →</button>
+              </div>
+              <div id="overviewCampPreview"></div>
+              <button class="camp-preview-link" onclick="navigate('camps')">Explore blood camps →</button>
+            </section>
+          </div>
+        </section>
+
+        <!-- 2. VIEW: FIND DONORS -->
+        <section id="view-donors" class="view-panel hidden">
+          <div class="view-heading">
+            <div>
+              <div class="eyebrow">FIND YOUR MATCH</div>
+              <h1>Find a Blood Donor</h1>
+              <p>Filter standard, Bombay (hh), Rh-null, and rare subgroup donors near you.</p>
             </div>
-          `).join('');
-        }
+            <div class="heading-actions">
+              <button class="button primary" onclick="openRegisterModal()">+ Become a Donor</button>
+            </div>
+          </div>
+
+          <div class="info-strip">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <div>
+              <strong>90-Day Recovery Clinical Shield is Active</strong>
+              <span>Donors are automatically hidden for 90 days after donation. <span id="shieldedCount">1 donor is</span> currently protected.</span>
+            </div>
+            <span class="shield-on"><i></i> ACTIVE</span>
+          </div>
+
+          <section class="card directory-card">
+            <div class="directory-top">
+              <div class="section-heading">
+                <div>
+                  <h2>Donors Near You</h2>
+                  <p id="donorsSubtitle">Verified lifesavers within 25 km of your location</p>
+                </div>
+              </div>
+              <div class="directory-filters">
+                <select id="donorFilterGroup" onchange="renderDonorsList()">
+                  <option value="All groups">All Blood Groups</option>
+                  <optgroup label="Standard Groups">
+                    <option value="O+">O+</option><option value="O-">O-</option>
+                    <option value="A+">A+</option><option value="A-">A-</option>
+                    <option value="B+">B+</option><option value="B-">B-</option>
+                    <option value="AB+">AB+</option><option value="AB-">AB-</option>
+                  </optgroup>
+                  <optgroup label="Rare Groups">
+                    <option value="Bombay (hh)">Bombay (hh)</option>
+                    <option value="Rh-null">Rh-null ("Golden")</option>
+                    <option value="A1+">A1+</option>
+                  </optgroup>
+                </select>
+                <select id="donorFilterRadius" onchange="renderDonorsList()">
+                  <option value="10">Within 10 km</option>
+                  <option value="25" selected>Within 25 km</option>
+                  <option value="50">Within 50 km</option>
+                  <option value="150">Statewide (150 km)</option>
+                </select>
+                <button class="button secondary compact" onclick="detectGPS()">📍 Locate me</button>
+              </div>
+            </div>
+
+            <div class="directory-table-head">
+              <span>DONOR & IDENTITY</span>
+              <span>STATUS</span>
+              <span>BLOOD GROUP</span>
+              <span>CONTACT</span>
+            </div>
+            <div id="fullDonorsList" class="donor-list full-list"></div>
+          </section>
+        </section>
+
+        <!-- 3. VIEW: RADAR -->
+        <section id="view-radar" class="view-panel hidden">
+          <div class="view-heading">
+            <div>
+              <div class="eyebrow">FIND CARE NEARBY</div>
+              <h1>Hospital & Blood Bank Radar</h1>
+              <p>Explore 24/7 certified blood banks and live donors on GPS radar.</p>
+            </div>
+            <div class="heading-actions">
+              <button class="button primary" onclick="openHospitalModal()">+ Add Blood Bank</button>
+            </div>
+          </div>
+          <div id="fullRadarMap" class="radar-map-wrap" style="height: 440px; border-radius: 12px; margin-bottom: 24px;"></div>
+          <div class="section-spacer">
+            <div class="section-heading">
+              <div>
+                <h2>Nearby Blood Banks</h2>
+                <p>Call ahead to verify rare blood inventory</p>
+              </div>
+            </div>
+          </div>
+          <div id="hospitalGrid" class="hospital-grid"></div>
+        </section>
+
+        <!-- 4. VIEW: REQUESTS (EMERGENCY SOS) -->
+        <section id="view-requests" class="view-panel hidden">
+          <div class="view-heading">
+            <div>
+              <div class="eyebrow">EMERGENCY SOS BROADCAST</div>
+              <h1>Active Blood Requests</h1>
+              <p>Instant SMS & WhatsApp alert dispatch with intelligent duplicate suppression.</p>
+            </div>
+            <div class="heading-actions">
+              <button class="button secondary" onclick="openBroadcastModal()">💬 One-Tap WhatsApp SOS</button>
+              <button class="button primary" onclick="openSosModal()">🚨 Raise Emergency SOS</button>
+            </div>
+          </div>
+
+          <div class="request-toolbar">
+            <div class="segmented">
+              <button id="reqFilterActive" class="selected" onclick="setRequestFilter('active')">Active Requests <span id="reqBadgeCount">3</span></button>
+              <button id="reqFilterAll" onclick="setRequestFilter('all')">All Requests</button>
+            </div>
+            <span>🛡️ Spam & Duplicate Alert Filter Active</span>
+          </div>
+
+          <div id="requestsGrid" class="requests-grid"></div>
+
+          <!-- SMS NOTIFICATION DISPATCH SIMULATION -->
+          <div class="sms-banner">
+            <div class="sms-banner-icon">📡</div>
+            <div>
+              <strong>Automated SMS Notification to Donors Within Radius</strong>
+              <span>When an emergency SOS is triggered, SMS alerts are dispatched to all verified donors within 25 km of the hospital.</span>
+            </div>
+            <button class="button secondary compact" onclick="triggerSmsSimulation()">
+              Simulate Radius SMS Dispatch (<span id="smsCountDisplay">0</span>) →
+            </button>
+          </div>
+        </section>
+
+        <!-- 5. VIEW: BLOOD CAMPS NETWORK -->
+        <section id="view-camps" class="view-panel hidden">
+          <div class="view-heading">
+            <div>
+              <div class="eyebrow">COMMUNITY OUTREACH</div>
+              <h1>Nearby Blood Camp Co-Ordination Network</h1>
+              <p>Live GPS-sorted upcoming voluntary donation drives organized by colleges, NSS cells & hospitals.</p>
+            </div>
+            <div class="heading-actions">
+              <button class="button primary" onclick="openCampModal()">+ Add Blood Camp</button>
+            </div>
+          </div>
+          <div class="list-intro">
+            <span>📍 Sorted by distance from your location</span>
+            <button class="text-link" onclick="detectGPS()">Update GPS</button>
+          </div>
+          <div id="campsGrid" class="camp-grid"></div>
+        </section>
+
+        <!-- 6. VIEW: LIFESTREAM LEAGUE (GAMIFIED LEADERBOARD) -->
+        <section id="view-leaderboard" class="view-panel hidden">
+          <div class="view-heading">
+            <div>
+              <div class="eyebrow">COMMUNITY GAMIFICATION</div>
+              <h1>The LifeStream League (உயிர்த்துளி அரங்கம்)</h1>
+              <p>College departments, hostels, and corporate teams competing to save the most lives.</p>
+            </div>
+          </div>
+
+          <div class="leader-hero">
+            <div>
+              <span>🏆 THE LIFESTREAM LEAGUE CHAMPIONSHIP</span>
+              <h2>Every unit donated brings your hostel or department to the top.</h2>
+              <p>
+                Gamified tiers: 👑 <strong>Apex Lifesaver</strong> (10+ units) • 🥇 <strong>Crimson Guardian</strong> (6-9 units) • 🥈 <strong>Plasma Pioneer</strong> (3-5 units) • 🥉 <strong>LifeSpark</strong> (1-2 units).
+              </p>
+            </div>
+            <div class="leader-trophy">🏆<span>✦</span></div>
+            <small>SEASON 2026</small>
+          </div>
+
+          <div class="leader-stats">
+            <div>
+              <strong id="leagueTotalUnits">2,174</strong>
+              <span>Total Units Donated</span>
+            </div>
+            <div>
+              <strong id="leagueTotalTeams">6</strong>
+              <span>Active Departments & Hostels</span>
+            </div>
+            <div>
+              <strong id="leagueTotalMembers">1,350+</strong>
+              <span>Student & Voluntary Donors</span>
+            </div>
+          </div>
+
+          <section class="card leaderboard-card">
+            <div class="section-heading">
+              <div>
+                <h2>Hall of Fame & Unit Standings</h2>
+                <p>Live leaderboard ranked by verified blood units collected</p>
+              </div>
+            </div>
+            <div class="leader-table">
+              <div class="leader-row leader-table-head">
+                <span>RANK</span>
+                <span>DEPARTMENT / HOSTEL</span>
+                <span>CATEGORY</span>
+                <span>MEMBERS</span>
+                <span>UNITS DONATED</span>
+              </div>
+              <div id="leagueTableBody"></div>
+            </div>
+          </section>
+        </section>
+
+        <!-- 7. VIEW: DIGITAL DONOR ID PASS -->
+        <section id="view-donorid" class="view-panel hidden">
+          <div class="view-heading">
+            <div>
+              <div class="eyebrow">VERIFIED CREDENTIALS</div>
+              <h1>My Verified Digital Donor Pass</h1>
+              <p>Verifiable digital credentials with Aadhaar redaction & QR authentication.</p>
+            </div>
+          </div>
+
+          <div class="id-layout">
+            <section class="id-card">
+              <div class="id-card-top">
+                <div class="id-logo">
+                  <span>🩸</span>
+                  <strong>donorfinder<sup>++</sup> | LIFESTREAM</strong>
+                </div>
+                <span class="id-verified">✓ AADHAAR VERIFIED</span>
+              </div>
+              <div class="id-card-middle">
+                <div class="id-avatar" id="passAvatar">PS</div>
+                <div>
+                  <span>VERIFIED LIFESAVER</span>
+                  <h2 id="passName">Priya Sharma</h2>
+                  <p id="passDept">CSE Dept • IIT Madras</p>
+                </div>
+                <div class="id-blood">
+                  <strong id="passBlood">O+</strong>
+                  <span>BLOOD GROUP</span>
+                </div>
+              </div>
+              <div class="id-card-bottom">
+                <div>
+                  <span>DONOR UID</span>
+                  <strong id="passUid">DF-001001</strong>
+                </div>
+                <div>
+                  <span>AADHAAR (REDACTED)</span>
+                  <strong id="passAadhaar">XXXX-XXXX-9124</strong>
+                </div>
+                <div class="id-heart" title="Scannable Digital Verification Token">
+                  <span style="font-size: 2rem;">🔲</span>
+                </div>
+              </div>
+              <div class="id-orbit id-orbit-one"></div>
+              <div class="id-orbit id-orbit-two"></div>
+            </section>
+
+            <section class="card id-details">
+              <div class="id-details-icon">🛡️</div>
+              <h2>Clinical Eligibility & Recovery Status</h2>
+              <p>
+                Your donor profile is protected by our automated 90-day recovery shield. Donors must undergo mandatory clinical checkup (Hb &gt; 12.5 g/dL) at the hospital prior to donation.
+              </p>
+              <div class="id-status-row">
+                <span>Donor Status</span>
+                <strong class="good-status">✓ Eligible & Ready to Donate</strong>
+              </div>
+              <div class="id-status-row">
+                <span>LifeStream League Rank</span>
+                <strong style="color: var(--red);">🥇 Crimson Guardian (8 Units)</strong>
+              </div>
+              <button class="button primary full" onclick="window.print()">
+                🖨️ Download / Print Verifiable Pass
+              </button>
+            </section>
+          </div>
+        </section>
+
+        <!-- 8. VIEW: COMPATIBILITY MATCHER -->
+        <section id="view-compatibility" class="view-panel hidden">
+          <div class="view-heading">
+            <div>
+              <div class="eyebrow">CLINICAL CROSS-REFERENCE</div>
+              <h1>Blood Compatibility Quick Matcher</h1>
+              <p>Instant cross-match guide for standard and rare groups (Bombay hh, Rh-null, INRA, A1/A2).</p>
+            </div>
+          </div>
+
+          <div class="compat-layout">
+            <section class="card compat-main">
+              <div class="compat-icon">🩸</div>
+              <h2>Every Blood Type Has a Safe Match</h2>
+              <p>Select a recipient patient blood group to cross-reference safe donors and recipient pairings.</p>
+              <div class="compat-label">SELECT RECIPIENT PATIENT GROUP</div>
+              <div class="group-selector" id="compatGroupButtons"></div>
+
+              <div class="compat-results">
+                <div>
+                  <span class="compat-result-icon">↓</span>
+                  <h3 id="compatReceiveTitle">O+ Can Safely Receive From:</h3>
+                  <p>Compatible red-cell donor groups</p>
+                  <div class="compat-chips" id="compatReceiveChips"></div>
+                </div>
+                <div>
+                  <span class="compat-result-icon alt">↗</span>
+                  <h3 id="compatGiveTitle">O+ Can Safely Donate To:</h3>
+                  <p>Compatible recipient groups</p>
+                  <div class="compat-chips" id="compatGiveChips"></div>
+                </div>
+              </div>
+            </section>
+
+            <aside class="card compat-aside">
+              <div class="compat-aside-icon">🤝</div>
+              <h3>Clinical Rare Blood Notes</h3>
+              <p>
+                <strong>Bombay Blood (hh):</strong> Individuals lack the H antigen. They can donate red cells widely, but can <em>only</em> receive from another Bombay (hh) donor!
+              </p>
+              <p style="margin-top: 10px;">
+                <strong>Rh-null ("Golden Blood"):</strong> Completely lacks Rh system antigens. Extremely rare worldwide; can only receive Rh-null blood.
+              </p>
+              <div class="medical-note">
+                <span>⚠️ Pre-donation reminder: Informational red-cell guide only. Hospital laboratory crossmatch and pre-donation hemoglobin check (Hb &gt; 12.5) are mandatory prior to transfusion.</span>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <!-- 9. VIEW: REAL CAMP PHOTO GALLERY -->
+        <section id="view-gallery" class="view-panel hidden">
+          <div class="view-heading">
+            <div>
+              <div class="eyebrow">ON GROUND HEROES</div>
+              <h1>Voluntary Blood Donation Camp Gallery</h1>
+              <p>Real snapshots and certificates of honor from our university, NSS Cell & hospital donation drives.</p>
+            </div>
+          </div>
+
+          <div class="camp-gallery-grid">
+            <article class="card gallery-card-hero">
+              <div class="gallery-photo-wrap">
+                <!-- Real uploaded photo saved in static/camp-photo1.jpg -->
+                <img src="{{ url_for('static', filename='camp-photo1.jpg') }}" alt="USTM & P.A. Sangma Medical College Camp" class="real-camp-img" onerror="this.src='https://images.unsplash.com/photo-1615461066841-6116e61058f4?auto=format&fit=crop&w=1200&q=80'" />
+                <div class="gallery-badge-overlay">
+                  <span class="badge-pill">🏅 NSS & PIMC Felicitation</span>
+                </div>
+              </div>
+              <div class="gallery-details">
+                <h3>Voluntary Blood Donation Camp Felicitation</h3>
+                <p class="gallery-sub">
+                  Organized by <strong>NSS Cell, State University (USTM)</strong> in association with <strong>Blood Centre, P.A. Sangma International Medical College & Hospital (PIMC)</strong>.
+                </p>
+                <div class="gallery-metrics-row">
+                  <span>🩸 85+ Units Donated</span>
+                  <span>🎖️ Voluntary Appreciation Certificates Awarded</span>
+                  <span>📍 Ri-Bhoi / Guwahati Health Center</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="card gallery-info-card">
+              <div class="gallery-card-icon">🎖️</div>
+              <h3>Certificates of Appreciation</h3>
+              <p>
+                Every student and faculty member donating in our affiliated NSS and Medical College camps receives an official Government & Hospital Blood Centre Certificate of Honor.
+              </p>
+              <div class="camp-steps">
+                <div><span>1</span> Blood Pressure & Vitals Check</div>
+                <div><span>2</span> Hemoglobin Eligibility (Hb &gt; 12.5 g/dL)</div>
+                <div><span>3</span> Voluntary Donation & Refreshment</div>
+                <div><span>4</span> Digital Donor Pass & Certificate</div>
+              </div>
+              <button class="button primary full" onclick="navigate('camps')" style="margin-top: 20px;">
+                View Next Upcoming Blood Camp →
+              </button>
+            </article>
+          </div>
+        </section>
+
+      </main>
+
+      <footer class="app-footer">
+        <span>Made with ❤️ for every life. LifeStream DonorFinder++</span>
+        <span>"இரத்த தானம் செய்வோம் • உயிர்களைக் காப்போம்"</span>
+      </footer>
+    </div>
+  </div>
+
+  <!-- BILINGUAL VOICE ASSISTANT MODAL (English & தமிழ்) -->
+  <div id="voiceModal" class="modal-backdrop hidden" onclick="closeModals(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-heading">
+        <div>
+          <h2>Bilingual Voice Assistant</h2>
+          <p>Hands-free emergency query & navigation in English and தமிழ்.</p>
+        </div>
+        <button class="icon-button modal-close" onclick="closeVoiceModal()">✕</button>
+      </div>
+
+      <div class="voice-language">
+        <button id="langEnBtn" class="selected" onclick="setVoiceLang('en-IN')">English (India)</button>
+        <button id="langTaBtn" onclick="setVoiceLang('ta-IN')">தமிழ் (Tamil)</button>
+      </div>
+
+      <div class="voice-center">
+        <button id="micPulseBtn" class="voice-mic" onclick="toggleSpeech()">🎙️</button>
+        <strong id="voicePromptText">Tap to Speak</strong>
+        <span id="voiceSubText">Try saying: &quot;Emergency O+ blood&quot; or &quot;அவசரம் ரத்தம் தேவை&quot;</span>
+      </div>
+
+      <div id="voiceTranscriptArea" class="voice-result hidden"></div>
+
+      <div class="voice-examples">
+        <div>✨ VOICE COMMAND SHORTCUTS</div>
+        <button onclick="handleVoiceCmd('Emergency O+ blood', 'en-IN')">🚨 &quot;Emergency O+ blood&quot;</button>
+        <button onclick="handleVoiceCmd('Find Bombay blood', 'en-IN')">🩸 &quot;Find Bombay blood&quot;</button>
+        <button onclick="handleVoiceCmd('Show blood camps', 'en-IN')">🏥 &quot;Show blood camps&quot;</button>
+        <button onclick="handleVoiceCmd('LifeStream League', 'en-IN')">🏆 &quot;LifeStream League&quot;</button>
+        <button onclick="handleVoiceCmd('அவசரம் இரத்த உதவி தேவை', 'ta-IN')">🚨 &quot;அவசரம் இரத்த உதவி தேவை&quot;</button>
+        <button onclick="handleVoiceCmd('அருகிலுள்ள இரத்த முகாம்கள்', 'ta-IN')">🏥 &quot;அருகிலுள்ள இரத்த முகாம்கள்&quot;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMERGENCY SOS MODAL -->
+  <div id="sosModal" class="modal-backdrop hidden" onclick="closeModals(event)">
+    <div class="modal modal-wide" onclick="event.stopPropagation()">
+      <div class="modal-heading">
+        <div>
+          <h2>🚨 Raise an Emergency SOS Broadcast</h2>
+          <p>Dispatches alerts to verified donors within your GPS radius with spam suppression.</p>
+        </div>
+        <button class="icon-button modal-close" onclick="closeSosModal()">✕</button>
+      </div>
+
+      <form id="sosForm" onsubmit="submitSos(event)" class="form-grid">
+        <label class="field">
+          <span>Patient Name *</span>
+          <input id="sosPatient" placeholder="Patient's name" required />
+        </label>
+        <label class="field">
+          <span>Blood Group Needed *</span>
+          <select id="sosBloodGroup" required>
+            <option value="O+">O+</option><option value="O-">O-</option>
+            <option value="A+">A+</option><option value="A-">A-</option>
+            <option value="B+">B+</option><option value="B-">B-</option>
+            <option value="AB+">AB+</option><option value="AB-">AB-</option>
+            <option value="Bombay (hh)">Bombay (hh)</option>
+            <option value="Rh-null">Rh-null (Golden)</option>
+            <option value="A1+">A1+</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Hospital & Ward *</span>
+          <input id="sosHospital" placeholder="e.g. Apollo / P.A. Sangma Hospital" required />
+        </label>
+        <label class="field">
+          <span>City / Area *</span>
+          <input id="sosArea" placeholder="e.g. Greams Road, Chennai" required />
+        </label>
+        <label class="field">
+          <span>Units Required</span>
+          <input id="sosUnits" type="number" min="1" max="20" value="1" required />
+        </label>
+        <label class="field">
+          <span>Emergency Contact Number *</span>
+          <input id="sosContact" type="tel" placeholder="10-digit mobile number" required />
+        </label>
+        <label class="field">
+          <span>Broadcast Radius</span>
+          <select id="sosRadius">
+            <option value="10">Within 10 km (Immediate)</option>
+            <option value="25" selected>Within 25 km (Citywide)</option>
+            <option value="50">Within 50 km (Regional & Rare)</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Urgency</span>
+          <select id="sosUrgency">
+            <option value="Urgent">Urgent</option>
+            <option value="Critical">Critical (Golden Hour)</option>
+          </select>
+        </label>
+
+        <div class="form-hint field-full">
+          🛡️ <strong>Smart Duplicate Alert Suppression:</strong> Identical requests for the same patient or hospital within 10 minutes are automatically flagged to prevent spam.
+        </div>
+
+        <div id="sosAlertError" class="form-error field-full hidden"></div>
+
+        <div class="modal-actions field-full">
+          <button type="button" class="button secondary" onclick="closeSosModal()">Cancel</button>
+          <button type="submit" id="sosSubmitBtn" class="button primary">🚨 Broadcast Emergency SOS</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- DONOR REGISTRATION WITH AADHAAR REDACTION MODAL -->
+  <div id="registerModal" class="modal-backdrop hidden" onclick="closeModals(event)">
+    <div class="modal modal-wide" onclick="event.stopPropagation()">
+      <div class="modal-heading">
+        <div>
+          <h2>Register as a Verified Voluntary Donor</h2>
+          <p>Join our lifesaver network with privacy-preserving Aadhaar redaction.</p>
+        </div>
+        <button class="icon-button modal-close" onclick="closeRegisterModal()">✕</button>
+      </div>
+
+      <form id="regForm" onsubmit="submitRegistration(event)" class="form-grid">
+        <label class="field">
+          <span>Full Name *</span>
+          <input id="regName" placeholder="Your full name" required minlength="2" />
+        </label>
+        <label class="field">
+          <span>Phone Number *</span>
+          <input id="regPhone" type="tel" placeholder="10-digit mobile number" required />
+        </label>
+        <label class="field">
+          <span>Blood Group *</span>
+          <select id="regBlood">
+            <option value="O+">O+</option><option value="O-">O-</option>
+            <option value="A+">A+</option><option value="A-">A-</option>
+            <option value="B+">B+</option><option value="B-">B-</option>
+            <option value="AB+">AB+</option><option value="AB-">AB-</option>
+            <option value="Bombay (hh)">Bombay (hh)</option>
+            <option value="Rh-null">Rh-null ("Golden")</option>
+            <option value="A1+">A1+</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>City / Area *</span>
+          <input id="regArea" placeholder="e.g. Egmore / Guwahati" required />
+        </label>
+        <label class="field">
+          <span>College / Company</span>
+          <input id="regOrg" placeholder="e.g. IIT Madras, USTM, Anna Univ" />
+        </label>
+        <label class="field">
+          <span>Department / Hostel (For League)</span>
+          <input id="regDept" placeholder="e.g. CSE Dept / Hostel 4" />
+        </label>
+
+        <!-- AADHAAR REDACTION COMPONENT -->
+        <div class="field field-full aadhaar-container">
+          <div class="aadhaar-label-row">
+            🔒 <strong>Aadhaar Redacted Identity Verification</strong>
+          </div>
+          <p class="aadhaar-explainer">
+            First 8 digits are auto-masked on your browser to protect privacy. Only the last 4 digits are encrypted.
+          </p>
+          <div class="aadhaar-input-wrap">
+            <input id="regAadhaar" type="text" maxlength="12" placeholder="Enter 12-digit Aadhaar" oninput="maskAadhaarLive(this)" required />
+            <span id="aadhaarBadgePreview" class="aadhaar-live-badge">🔒 XXXX-XXXX-____</span>
+          </div>
+        </div>
+
+        <div class="form-hint field-full clinical-reminder-box">
+          ⚠️ <strong>Pre-Donation Hospital Checkup Reminder:</strong> Hemoglobin (&gt;12.5 g/dL) and vitals are verified at the certified blood center prior to collection.
+        </div>
+
+        <div class="modal-actions field-full">
+          <button type="button" class="button secondary" onclick="closeRegisterModal()">Cancel</button>
+          <button type="submit" class="button primary">Create Verified Pass →</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toastBox" class="toast hidden">
+    <span>✓</span>
+    <span id="toastMsg">Notification message</span>
+  </div>
+
+  <script>
+    // GLOBAL STATE
+    let globalData = { donors: [], hospitals: [], requests: [], camps: [], teams: [] };
+    let currentCenter = { lat: 13.0827, lng: 80.2707 };
+    let activeRequestFilter = 'active';
+    let voiceLanguage = 'en-IN';
+    let recognition = null;
+    let isListening = false;
+    let overviewMapInstance = null;
+    let fullMapInstance = null;
+    let smsCounter = 0;
+
+    const COMPATIBILITY = {
+      "O-": { receive: ["O-"], give: ["All Groups (Universal Donor)"] },
+      "O+": { receive: ["O-", "O+"], give: ["O+", "A+", "B+", "AB+"] },
+      "A-": { receive: ["O-", "A-"], give: ["A-", "A+", "AB-", "AB+"] },
+      "A+": { receive: ["O-", "O+", "A-", "A+"], give: ["A+", "AB+"] },
+      "B-": { receive: ["O-", "B-"], give: ["B-", "B+", "AB-", "AB+"] },
+      "B+": { receive: ["O-", "O+", "B-", "B+"], give: ["B+", "AB+"] },
+      "AB-": { receive: ["O-", "A-", "B-", "AB-"], give: ["AB-", "AB+"] },
+      "AB+": { receive: ["All Standard Groups (Universal Recipient)"], give: ["AB+ Only"] },
+      "Bombay (hh)": { receive: ["Bombay (hh) ONLY"], give: ["All Standard Groups (Universal Red Cell)"] },
+      "Rh-null": { receive: ["Rh-null ONLY"], give: ["All Groups (Golden Blood)"] },
+      "A1+": { receive: ["O-", "O+", "A-", "A1-", "A+"], give: ["A1+", "AB+"] }
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadNetworkData();
+      initCompatibilityButtons("O+");
+      initSpeech();
+    });
+
+    async function loadNetworkData() {
+      try {
+        const res = await fetch("/api/data");
+        const data = await res.json();
+        globalData = data;
+        updateUI();
       } catch (e) {
-        console.error("Leaderboard load error:", e);
+        console.error("Data error", e);
       }
     }
 
-    // Compatibility update
-    function updateCompatibility() {
-      const selected = document.getElementById("matchGroupSelect").value;
-      const info = compatibilityMatrix[selected] || { receive: ["Consult Blood Bank"], give: ["Consult Blood Bank"] };
-      
-      document.getElementById("canReceiveList").innerHTML = info.receive.map(g => `<span class="compat-badge in">${g}</span>`).join('');
-      document.getElementById("canGiveList").innerHTML = info.give.map(g => `<span class="compat-badge out">${g}</span>`).join('');
+    function updateUI() {
+      document.getElementById("statDonorCount").innerText = globalData.donors.length;
+      document.getElementById("statHospitalCount").innerText = globalData.hospitals.length;
+      document.getElementById("statCampCount").innerText = globalData.camps.length;
+      const activeReqs = globalData.requests.filter(r => r.status === 'active');
+      document.getElementById("statRequestCount").innerText = activeReqs.length;
+      document.getElementById("sidebarRequestCount").innerText = activeReqs.length;
+      document.getElementById("reqBadgeCount").innerText = activeReqs.length;
+      document.getElementById("statLivesSaved").innerText = globalData.impact.livesSaved.toLocaleString();
+      document.getElementById("legendDonorCount").innerText = globalData.donors.length;
+      document.getElementById("legendHospCount").innerText = globalData.hospitals.length;
+      document.getElementById("shieldedCount").innerText = `${globalData.protectedCount} donor(s) are`;
+
+      renderOverviewRequests(activeReqs);
+      renderOverviewDonors();
+      renderOverviewCamp();
+      renderDonorsList();
+      renderHospitals();
+      renderRequestsList();
+      renderCamps();
+      renderLeague();
+      initMaps();
     }
 
-    // Live Aadhaar Masking Function
-    function maskAadhaarLive(input) {
-      let val = input.value.replace(/\D/g, '').substring(0, 12);
-      if (val.length > 8) {
-        document.getElementById("maskedPreview").innerText = `XXXX-XXXX-${val.substring(8)}`;
+    function navigate(viewId) {
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.add("hidden"));
+      const target = document.getElementById("view-" + viewId);
+      if (target) target.classList.remove("hidden");
+
+      document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+      const navBtn = document.getElementById("nav-" + viewId);
+      if (navBtn) navBtn.classList.add("active");
+
+      const titles = {
+        overview: "Overview", donors: "Find Donors", radar: "Hospital Radar",
+        requests: "Blood Requests", camps: "Blood Camps", leaderboard: "LifeStream League 🏆",
+        donorid: "My Digital Pass", compatibility: "Compatibility Matcher", gallery: "Camp Photo Gallery"
+      };
+      document.getElementById("viewTitleBreadcrumb").innerText = titles[viewId] || "Overview";
+      toggleSidebar(false);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      if (viewId === "radar" && fullMapInstance) {
+        setTimeout(() => fullMapInstance.invalidateSize(), 200);
+      }
+    }
+
+    function toggleSidebar(open) {
+      const sb = document.getElementById("sidebar");
+      const sc = document.getElementById("sidebarScrim");
+      if (open) {
+        sb.classList.add("sidebar-open");
+        sc.style.display = "block";
       } else {
-        document.getElementById("maskedPreview").innerText = "XXXX-XXXX-____";
+        sb.classList.remove("sidebar-open");
+        sc.style.display = "none";
       }
     }
 
-    // Emergency SOS Submission with Duplicate Suppression
-    async function submitSosBroadcast(e) {
-      e.preventDefault();
-      const alertBox = document.getElementById("sosAlertBox");
-      const btn = document.getElementById("btnSubmitSos");
-      
-      btn.disabled = true;
-      btn.innerText = "Broadcasting Emergency SOS...";
+    // MAP INITIALIZATION
+    function initMaps() {
+      if (!overviewMapInstance && document.getElementById("overviewMap")) {
+        overviewMapInstance = L.map("overviewMap", { zoomControl: false, scrollWheelZoom: false }).setView([currentCenter.lat, currentCenter.lng], 12);
+        L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+          maxZoom: 18,
+          attribution: 'Tiles &copy; Esri'
+        }).addTo(overviewMapInstance);
+      }
+      if (!fullMapInstance && document.getElementById("fullRadarMap")) {
+        fullMapInstance = L.map("fullRadarMap", { zoomControl: true, scrollWheelZoom: false }).setView([currentCenter.lat, currentCenter.lng], 12);
+        L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", {
+          maxZoom: 18,
+          attribution: 'Tiles &copy; Esri'
+        }).addTo(fullMapInstance);
+      }
+      populateMapMarkers(overviewMapInstance);
+      populateMapMarkers(fullMapInstance);
+    }
 
-      const payload = {
-        patient_name: document.getElementById("sosPatientName").value,
-        blood_group: document.getElementById("sosBloodGroup").value,
-        hospital: document.getElementById("sosHospital").value,
-        contact_phone: document.getElementById("sosPhone").value,
-        radius_km: parseFloat(document.getElementById("sosRadius").value),
-        latitude: userLocation.lat,
-        longitude: userLocation.lon
-      };
-
-      try {
-        const res = await fetch("/api/sos-broadcast", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
+    function populateMapMarkers(map) {
+      if (!map) return;
+      globalData.donors.forEach(d => {
+        const icon = L.divIcon({
+          className: "custom-map-pin",
+          html: `<div style="background:#de3047;color:white;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10px;border:2px solid white;box-shadow:0 3px 8px rgba(0,0,0,0.3)">${d.blood_group.slice(0,3)}</div>`,
+          iconSize: [32, 32], iconAnchor: [16, 16]
         });
-        const data = await res.json();
-        alertBox.classList.remove("hidden");
-
-        if (res.status === 429 || data.is_duplicate) {
-          alertBox.className = "alert-box warning";
-          alertBox.innerHTML = `⚠️ <strong>Duplicate Alert Prevented!</strong> ${data.message}`;
-        } else if (data.success) {
-          alertBox.className = "alert-box success";
-          alertBox.innerHTML = `
-            ✅ <strong>SOS Broadcast Successful!</strong><br>
-            🚨 Notified <strong>${data.notified_count}</strong> matching donors within ${data.radius_km} km.<br>
-            📲 SMS / WhatsApp dispatch initiated with emergency hospital coordinates.
-          `;
-          speakResponse("Emergency SOS broadcast successfully sent to nearby lifesavers.", "அவசர இரத்த உதவி தகவல் அருகில் உள்ளவர்களுக்கு அனுப்பப்பட்டது.");
-        } else {
-          alertBox.className = "alert-box error";
-          alertBox.innerText = data.message || "Failed to broadcast SOS.";
-        }
-      } catch (err) {
-        alertBox.className = "alert-box error";
-        alertBox.innerText = "Network error. Please call the emergency helpline directly.";
-      } finally {
-        btn.disabled = false;
-        btn.innerText = "📡 Broadcast Emergency SOS to Nearby Donors";
-      }
-    }
-
-    // Register Donor Submission
-    async function submitDonorRegistration(e) {
-      e.preventDefault();
-      const payload = {
-        name: document.getElementById("regName").value,
-        blood_group: document.getElementById("regBloodGroup").value,
-        phone: document.getElementById("regPhone").value,
-        department: document.getElementById("regDept").value,
-        institution: document.getElementById("regInstitution").value,
-        city: document.getElementById("regCity").value,
-        aadhaar: document.getElementById("regAadhaar").value,
-        latitude: userLocation.lat,
-        longitude: userLocation.lon
-      };
-
-      try {
-        const res = await fetch("/api/register-donor", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (data.success) {
-          alert(`Welcome to LifeStream! Your encrypted Donor UID is ${data.donor_uid}`);
-          closeRegisterModal();
-          searchDonors();
-          fetchStats();
-        } else {
-          alert(data.message || "Registration failed");
-        }
-      } catch (err) {
-        alert("Registration submission failed. Check network.");
-      }
-    }
-
-    // Verifiable Digital Pass Generator
-    function viewDigitalPass(uid, name, group, aadhaar, count) {
-      document.getElementById("passName").innerText = name;
-      document.getElementById("passGroup").innerText = group;
-      document.getElementById("passUid").innerText = uid;
-      document.getElementById("passAadhaar").innerText = aadhaar;
-      
-      let rank = "LifeSpark Novice";
-      if (count >= 10) rank = "👑 Apex Lifesaver";
-      else if (count >= 6) rank = "🥇 Crimson Guardian";
-      else if (count >= 3) rank = "🥈 Plasma Pioneer";
-      document.getElementById("passRank").innerText = rank;
-
-      // Generate verifiable QR Code
-      const qrContainer = document.getElementById("passQrCode");
-      qrContainer.innerHTML = "";
-      new QRCode(qrContainer, {
-        text: `LIFESTREAM-VERIFIED:${uid}:${group}:${aadhaar}`,
-        width: 100,
-        height: 100,
-        colorDark: "#990000",
-        colorLight: "#ffffff"
+        L.marker([d.latitude, d.longitude], { icon }).bindPopup(`<b>${d.name}</b><br>${d.blood_group} donor • ${d.area}`).addTo(map);
       });
-
-      document.getElementById("passModal").classList.remove("hidden");
+      globalData.hospitals.forEach(h => {
+        const icon = L.divIcon({
+          className: "custom-map-pin",
+          html: `<div style="background:#4e8dcd;color:white;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;border:2px solid white;box-shadow:0 3px 8px rgba(0,0,0,0.3)">✚</div>`,
+          iconSize: [30, 30], iconAnchor: [15, 15]
+        });
+        L.marker([h.latitude, h.longitude], { icon }).bindPopup(`<b>${h.name}</b><br>${h.address}<br>Tel: ${h.phone}`).addTo(map);
+      });
     }
 
-    // Bilingual Voice Assistant (Tamil & English)
-    function initSpeechRecognition() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        console.warn("Web Speech API not supported on this browser.");
-        return;
+    function detectGPS() {
+      if (navigator.geolocation) {
+        showToast("Acquiring GPS location...");
+        navigator.geolocation.getCurrentPosition(pos => {
+          currentCenter = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          document.getElementById("overviewLocLabel").innerText = "Your GPS Location";
+          if (overviewMapInstance) overviewMapInstance.setView([currentCenter.lat, currentCenter.lng], 13);
+          if (fullMapInstance) fullMapInstance.setView([currentCenter.lat, currentCenter.lng], 13);
+          showToast("📍 Donors, Camps and Radar sorted by your live location!");
+        }, () => {
+          showToast("Could not retrieve GPS coordinates. Defaulting to regional center.");
+        });
       }
-      recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      // Auto-detect or switch between ta-IN and en-US
-      recognition.lang = "ta-IN"; // Default to Tamil, can query English words seamlessly
-
-      recognition.onstart = () => {
-        isListening = true;
-        document.getElementById("voiceHud").classList.remove("hidden");
-        document.getElementById("voiceStatusText").innerText = "Listening...";
-      };
-
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript.toLowerCase();
-        document.getElementById("voiceTranscript").innerText = `"${transcript}"`;
-        processVoiceCommand(transcript);
-      };
-
-      recognition.onerror = (e) => {
-        document.getElementById("voiceTranscript").innerText = "Voice error or silence. Please try again.";
-        setTimeout(closeVoiceHud, 3000);
-      };
-
-      recognition.onend = () => {
-        isListening = false;
-        document.getElementById("voiceStatusText").innerText = "Voice AI";
-      };
     }
 
-    function toggleVoiceAssistant() {
-      if (!recognition) {
-        alert("Your browser does not support Web Speech Recognition. Please use Chrome or Edge.");
+    // RENDER FUNCTIONS
+    function renderOverviewRequests(reqs) {
+      const container = document.getElementById("overviewRequestPreviews");
+      if (!reqs.length) {
+        container.innerHTML = "<div class='empty-state'><strong>All clear</strong><span>No active requests right now.</span></div>";
         return;
       }
-      if (isListening) {
-        recognition.stop();
-        closeVoiceHud();
+      container.innerHTML = reqs.slice(0, 3).map(r => `
+        <div class="request-preview">
+          <div class="blood-badge ${r.blood_group.includes('Bombay') || r.blood_group.includes('Rh') ? 'rare-badge' : ''}">
+            <strong>${r.blood_group}</strong>
+          </div>
+          <div class="request-preview-main">
+            <button class="plain-title" onclick="navigate('requests')">${r.hospital}</button>
+            <p>${r.units} unit(s) needed • ${r.area}</p>
+            <div class="request-preview-bottom">
+              <span class="${r.urgency === 'Critical' ? 'critical-tag' : 'urgent-tag'}"><span></span> ${r.urgency}</span>
+              <button class="share-mini" onclick="shareSosWhatsApp('${r.blood_group}', '${r.patient_name}', '${r.hospital}', '${r.contact}')">Share SOS</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderOverviewDonors() {
+      const container = document.getElementById("overviewDonorsList");
+      container.innerHTML = globalData.donors.slice(0, 3).map(d => `
+        <div class="donor-row">
+          <div class="person-avatar avatar-1">${d.name.slice(0,2).toUpperCase()}</div>
+          <div class="donor-name">
+            <strong>${d.name} <span class="aadhaar-tag">🔒 ${d.aadhaar_masked || 'XXXX-XXXX-4589'}</span></strong>
+            <span>${d.area} (${d.department || 'Lifesaver'})</span>
+          </div>
+          <span class="available-label"><i></i> Available</span>
+          <span class="group-chip">${d.blood_group}</span>
+          <a class="row-contact" href="tel:${d.phone}" title="Call donor">📞</a>
+        </div>
+      `).join('');
+    }
+
+    function renderOverviewCamp() {
+      const container = document.getElementById("overviewCampPreview");
+      if (!globalData.camps.length) return;
+      const c = globalData.camps[0];
+      container.innerHTML = `
+        <div class="camp-preview">
+          <div class="camp-date"><strong>${c.camp_date.split('-')[2]}</strong><span>${c.camp_date.split('-')[1]}</span></div>
+          <div>
+            <strong>${c.name}</strong>
+            <span>📍 ${c.venue}</span>
+            <small>⏰ ${c.time}</small>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDonorsList() {
+      const filterGroup = document.getElementById("donorFilterGroup").value;
+      const container = document.getElementById("fullDonorsList");
+      const filtered = globalData.donors.filter(d => filterGroup === 'All groups' || d.blood_group === filterGroup);
+      if (!filtered.length) {
+        container.innerHTML = "<div class='empty-state'><strong>No matching donors found</strong><span>Try another blood group or radius.</span></div>";
+        return;
+      }
+      container.innerHTML = filtered.map(d => `
+        <div class="donor-row">
+          <div class="person-avatar avatar-2">${d.name.slice(0,2).toUpperCase()}</div>
+          <div class="donor-name">
+            <strong>${d.name} <span class="aadhaar-tag">🔒 ${d.aadhaar_masked || 'XXXX-XXXX-4589'}</span></strong>
+            <span>${d.area} • ${d.organization}</span>
+          </div>
+          <span class="available-label"><i></i> Ready</span>
+          <span class="group-chip">${d.blood_group}</span>
+          <a class="row-contact" href="tel:${d.phone}">📞</a>
+        </div>
+      `).join('');
+    }
+
+    function renderHospitals() {
+      const container = document.getElementById("hospitalGrid");
+      container.innerHTML = globalData.hospitals.map(h => `
+        <article class="card hospital-card">
+          <div class="hospital-card-head">
+            <div class="hospital-icon">🏥</div>
+            <span class="verified-label">✓ 24/7 VERIFIED</span>
+          </div>
+          <h3>${h.name}</h3>
+          <p>📍 ${h.address}</p>
+          <p>📞 ${h.phone}</p>
+          <div class="hospital-groups"><span>GROUPS:</span> ${h.blood_groups}</div>
+          <div class="hospital-actions">
+            <a class="button secondary compact" href="tel:${h.phone}">Call Blood Bank</a>
+            <a class="icon-button" href="https://maps.google.com/?q=${h.latitude},${h.longitude}" target="_blank">↗</a>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function renderRequestsList() {
+      const container = document.getElementById("requestsGrid");
+      const list = activeRequestFilter === 'active' ? globalData.requests.filter(r => r.status === 'active') : globalData.requests;
+      if (!list.length) {
+        container.innerHTML = "<div class='card' style='grid-column: 1/-1;'><div class='empty-state'><strong>No requests</strong><span>All clear right now!</span></div></div>";
+        return;
+      }
+      container.innerHTML = list.map(r => `
+        <article class="card request-full-card">
+          <div class="request-full-head">
+            <div class="blood-badge large ${r.blood_group.includes('Bombay') || r.blood_group.includes('Rh') ? 'rare-badge' : ''}">
+              <strong>${r.blood_group}</strong>
+            </div>
+            <div>
+              <span class="${r.urgency === 'Critical' ? 'critical-tag' : 'urgent-tag'}"><span></span> ${r.urgency}</span>
+              <h3>${r.blood_group} Needed for ${r.patient_name}</h3>
+              <p>${r.units} unit(s) • ${r.hospital}</p>
+            </div>
+          </div>
+          <div class="request-detail">
+            <p>🏥 ${r.hospital}, ${r.area}</p>
+            <p>📞 Contact: ${r.contact}</p>
+          </div>
+          <div class="request-card-actions">
+            <button class="button whatsapp compact" onclick="shareSosWhatsApp('${r.blood_group}', '${r.patient_name}', '${r.hospital}', '${r.contact}')">💬 Share SOS</button>
+            <a class="button secondary compact" href="tel:${r.contact}">Call Attender</a>
+            ${r.status === 'active' ? `<button class="button secondary compact" onclick="fulfillRequest(${r.id})">✓ Mark Fulfilled</button>` : `<span class="fulfilled-tag">Fulfilled</span>`}
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function renderCamps() {
+      const container = document.getElementById("campsGrid");
+      container.innerHTML = globalData.camps.map(c => `
+        <article class="card camp-full-card">
+          <div class="camp-full-top">
+            <div class="camp-date"><strong>${c.camp_date.split('-')[2]}</strong><span>${c.camp_date.split('-')[1]}</span></div>
+            <span class="camp-distance">📍 ${c.area}</span>
+          </div>
+          <h3>${c.name}</h3>
+          <span class="camp-organizer">by ${c.organizer}</span>
+          <div class="camp-details">
+            <p>🏛️ ${c.venue}</p>
+            <p>⏰ ${c.time}</p>
+          </div>
+          <div class="camp-card-footer">
+            <span>👥 ${c.registrations} Lifesavers</span>
+            <button class="button compact secondary" onclick="joinCamp(${c.id})">Count me in →</button>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function renderLeague() {
+      const tbody = document.getElementById("leagueTableBody");
+      tbody.innerHTML = globalData.teams.map((t, idx) => `
+        <div class="leader-row">
+          <span class="rank rank-${idx + 1}">${idx === 0 ? '👑' : idx === 1 ? '🥇' : idx === 2 ? '🥈' : '#' + (idx + 1)}</span>
+          <span class="team-name">
+            <span class="team-avatar avatar-${idx % 5}">${t.name.slice(0,2).toUpperCase()}</span>
+            <strong>${t.name}</strong>
+          </span>
+          <span><span class="category-tag">${t.category}</span></span>
+          <span>${t.members}</span>
+          <strong>${t.units} <small>units</small></strong>
+        </div>
+      `).join('');
+    }
+
+    // ACTIONS
+    async function submitSos(e) {
+      e.preventDefault();
+      const errBox = document.getElementById("sosAlertError");
+      errBox.classList.add("hidden");
+      const btn = document.getElementById("sosSubmitBtn");
+      btn.innerText = "Broadcasting Emergency SOS...";
+      btn.disabled = true;
+
+      const payload = {
+        resource: "request",
+        patientName: document.getElementById("sosPatient").value,
+        bloodGroup: document.getElementById("sosBloodGroup").value,
+        hospital: document.getElementById("sosHospital").value,
+        area: document.getElementById("sosArea").value,
+        units: document.getElementById("sosUnits").value,
+        contact: document.getElementById("sosContact").value,
+        radiusKm: document.getElementById("sosRadius").value,
+        urgency: document.getElementById("sosUrgency").value,
+        latitude: currentCenter.lat,
+        longitude: currentCenter.lng
+      };
+
+      try {
+        const res = await fetch("/api/data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          errBox.innerText = data.error || "Failed to broadcast SOS.";
+          errBox.classList.remove("hidden");
+        } else {
+          closeSosModal();
+          showToast(`🚨 SOS Broadcasted! Dispatched SMS to ${data.smsAlert.alertedCount} donors within ${data.smsAlert.radiusKm} km.`);
+          speakText("Emergency SOS broadcasted successfully to nearby donors.");
+          loadNetworkData();
+        }
+      } catch (err) {
+        errBox.innerText = "Network error. Please call the helpline directly.";
+        errBox.classList.remove("hidden");
+      } finally {
+        btn.innerText = "🚨 Broadcast Emergency SOS";
+        btn.disabled = false;
+      }
+    }
+
+    async function submitRegistration(e) {
+      e.preventDefault();
+      const payload = {
+        action: "register",
+        name: document.getElementById("regName").value,
+        phone: document.getElementById("regPhone").value,
+        bloodGroup: document.getElementById("regBlood").value,
+        area: document.getElementById("regArea").value,
+        organization: document.getElementById("regOrg").value,
+        department: document.getElementById("regDept").value,
+        aadhaar: document.getElementById("regAadhaar").value,
+        latitude: currentCenter.lat,
+        longitude: currentCenter.lng
+      };
+      try {
+        const res = await fetch("/api/auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.ok) {
+          closeRegisterModal();
+          showToast("Welcome to LifeStream! Your Aadhaar-redacted digital pass is ready.");
+          document.getElementById("userNameTop").innerText = payload.name;
+          document.getElementById("passName").innerText = payload.name;
+          document.getElementById("passBlood").innerText = payload.bloodGroup;
+          document.getElementById("passDept").innerText = `${payload.department} • ${payload.organization}`;
+          document.getElementById("passAadhaar").innerText = "XXXX-XXXX-" + payload.aadhaar.slice(-4);
+          navigate("donorid");
+          loadNetworkData();
+        }
+      } catch {
+        alert("Registration failed. Please check details.");
+      }
+    }
+
+    async function fulfillRequest(id) {
+      await fetch("/api/data", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resource: "request", id, status: "fulfilled" })
+      });
+      showToast("Request marked fulfilled! Thank you lifesaver.");
+      loadNetworkData();
+    }
+
+    async function joinCamp(id) {
+      await fetch("/api/data", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resource: "camp", id, action: "join" })
+      });
+      showToast("Registered for blood camp! Pre-screening reminder sent.");
+      loadNetworkData();
+    }
+
+    function shareSosWhatsApp(group, name, hospital, contact) {
+      const msg = `🚨 URGENT EMERGENCY BLOOD SOS 🚨\n${group} blood immediately needed for ${name} at ${hospital}.\nAttender Phone: ${contact}\nShared via LifeStream (donorfinder++). Please donate or forward!`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function triggerSmsSimulation() {
+      smsCounter++;
+      document.getElementById("smsCountDisplay").innerText = smsCounter;
+      showToast(`Simulated SMS broadcast #${smsCounter} queued for rural & local health centers.`);
+    }
+
+    function maskAadhaarLive(input) {
+      const val = input.value.replace(/\D/g, "");
+      const badge = document.getElementById("aadhaarBadgePreview");
+      if (val.length >= 4) {
+        badge.innerText = `🔒 XXXX-XXXX-${val.slice(-4)}`;
       } else {
+        badge.innerText = "🔒 XXXX-XXXX-____";
+      }
+    }
+
+    function initCompatibilityButtons(defaultGrp) {
+      const container = document.getElementById("compatGroupButtons");
+      const groups = Object.keys(COMPATIBILITY);
+      container.innerHTML = groups.map(g => `
+        <button class="${g === defaultGrp ? 'selected' : ''}" onclick="selectCompatGroup('${g}')">${g}</button>
+      `).join('');
+      selectCompatGroup(defaultGrp);
+    }
+
+    function selectCompatGroup(grp) {
+      document.querySelectorAll("#compatGroupButtons button").forEach(b => b.classList.toggle("selected", b.innerText === grp));
+      const info = COMPATIBILITY[grp] || { receive: ["Crossmatch required"], give: ["Crossmatch required"] };
+      document.getElementById("compatReceiveTitle").innerText = `${grp} Can Safely Receive From:`;
+      document.getElementById("compatGiveTitle").innerText = `${grp} Can Safely Donate To:`;
+      document.getElementById("compatReceiveChips").innerHTML = info.receive.map(g => `<span>${g}</span>`).join('');
+      document.getElementById("compatGiveChips").innerHTML = info.give.map(g => `<span>${g}</span>`).join('');
+    }
+
+    // BILINGUAL VOICE ASSISTANT (Tamil & English)
+    function initSpeech() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = voiceLanguage;
+        recognition.onresult = (e) => {
+          const text = e.results[0][0].transcript;
+          document.getElementById("voiceTranscriptArea").innerText = `"${text}"`;
+          document.getElementById("voiceTranscriptArea").classList.remove("hidden");
+          handleVoiceCmd(text, voiceLanguage);
+          toggleSpeech(false);
+        };
+        recognition.onend = () => toggleSpeech(false);
+      }
+    }
+
+    function setVoiceLang(lang) {
+      voiceLanguage = lang;
+      if (recognition) recognition.lang = lang;
+      document.getElementById("langEnBtn").classList.toggle("selected", lang === 'en-IN');
+      document.getElementById("langTaBtn").classList.toggle("selected", lang === 'ta-IN');
+      document.getElementById("voicePromptText").innerText = lang === 'ta-IN' ? "பேச இங்கே தட்டவும்" : "Tap to Speak";
+    }
+
+    function toggleSpeech(forceState) {
+      if (!recognition) {
+        alert("Web Speech is not supported in this browser. Please use Chrome or Edge.");
+        return;
+      }
+      isListening = typeof forceState === 'boolean' ? forceState : !isListening;
+      const btn = document.getElementById("micPulseBtn");
+      if (isListening) {
+        btn.classList.add("listening");
+        document.getElementById("voicePromptText").innerText = voiceLanguage === 'ta-IN' ? "கேட்கிறது... பேசுங்கள்" : "Listening... Speak clearly";
         recognition.start();
+      } else {
+        btn.classList.remove("listening");
+        document.getElementById("voicePromptText").innerText = voiceLanguage === 'ta-IN' ? "பேச இங்கே தட்டவும்" : "Tap to Speak";
+        try { recognition.stop(); } catch {}
       }
     }
 
-    function closeVoiceHud() {
-      if (recognition && isListening) recognition.stop();
-      document.getElementById("voiceHud").classList.add("hidden");
-      document.getElementById("voiceStatusText").innerText = "Voice AI";
-    }
+    function handleVoiceCmd(cmd, lang) {
+      const lower = cmd.toLowerCase();
+      closeVoiceModal();
 
-    function speakResponse(enText, taText) {
-      if (!('speechSynthesis' in window)) return;
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(taText || enText);
-      utterance.lang = taText ? "ta-IN" : "en-US";
-      utterance.rate = 0.95;
-      window.speechSynthesis.speak(utterance);
-    }
-
-    function processVoiceCommand(cmd) {
-      // 1. Emergency SOS
-      if (cmd.includes("emergency") || cmd.includes("அவசரம்") || cmd.includes("உயிர் காப்போம்") || cmd.includes("sos")) {
-        speakResponse("Opening Emergency SOS Broadcast window.", "அவசர இரத்த உதவி சாளரம் திறக்கப்படுகிறது.");
+      if (lower.includes("emergency") || lower.includes("sos") || lower.includes("அவசரம்") || lower.includes("ரத்தம்")) {
+        speakText(lang === 'ta-IN' ? "அவசர இரத்த உதவி சாளரம் திறக்கப்படுகிறது" : "Opening emergency SOS broadcast");
         openSosModal();
-      }
-      // 2. Camps
-      else if (cmd.includes("camp") || cmd.includes("முகாம்") || cmd.includes("டிரைவ்")) {
-        speakResponse("Showing upcoming blood donation camps.", "அருகிலுள்ள இரத்த தான முகாம்கள் காண்பிக்கப்படுகின்றன.");
-        scrollToSection("camps");
-      }
-      // 3. Rare blood / Bombay blood
-      else if (cmd.includes("bombay") || cmd.includes("பம்பாய்") || cmd.includes("rare") || cmd.includes("அரிய")) {
-        document.getElementById("searchBloodGroup").value = "Bombay Blood (hh)";
-        speakResponse("Filtering for Bombay Blood Group donors.", "பம்பாய் இரத்தக் குழு கொடையாளர்கள் தேர்ந்தெடுக்கப்படுகிறார்கள்.");
-        searchDonors();
-        scrollToSection("find-donors");
-      }
-      // 4. Specific blood group queries
-      else if (cmd.includes("o positive") || cmd.includes("o+") || cmd.includes("ஓ பாசிட்டிவ்")) {
-        document.getElementById("searchBloodGroup").value = "O+";
-        speakResponse("Searching for O Positive donors.", "ஓ பாசிட்டிவ் கொடையாளர்களை தேடுகிறேன்.");
-        searchDonors();
-        scrollToSection("find-donors");
-      }
-      // 5. Leaderboard / League
-      else if (cmd.includes("leaderboard") || cmd.includes("லீக்") || cmd.includes("அரங்கம்") || cmd.includes("rank")) {
-        speakResponse("Opening LifeStream League leaderboard.", "உயிர்த்துளி அரங்கம் தரவரிசைக்கு செல்கிறது.");
-        scrollToSection("lifestream-league");
-      }
-      // Fallback
-      else {
-        speakResponse("Finding nearby voluntary blood donors.", "இரத்த கொடையாளர்களைத் தேடுகிறேன்.");
-        searchDonors();
-        scrollToSection("find-donors");
+      } else if (lower.includes("bombay") || lower.includes("பம்பாய்")) {
+        speakText(lang === 'ta-IN' ? "பம்பாய் இரத்த கொடையாளர்கள் காண்பிக்கப்படுகிறார்கள்" : "Filtering Bombay blood donors");
+        document.getElementById("donorFilterGroup").value = "Bombay (hh)";
+        navigate("donors");
+      } else if (lower.includes("camp") || lower.includes("முகாம்")) {
+        speakText(lang === 'ta-IN' ? "இரத்த முகாம்கள் காண்பிக்கப்படுகின்றன" : "Showing blood donation camps");
+        navigate("camps");
+      } else if (lower.includes("league") || lower.includes("அரங்கம்") || lower.includes("rank")) {
+        speakText(lang === 'ta-IN' ? "உயிர்த்துளி அரங்கம் திறக்கப்படுகிறது" : "Opening LifeStream League");
+        navigate("leaderboard");
+      } else if (lower.includes("pass") || lower.includes("அடையாள அட்டை")) {
+        speakText(lang === 'ta-IN' ? "உங்கள் அடையாள அட்டை" : "Showing your digital pass");
+        navigate("donorid");
+      } else {
+        speakText(lang === 'ta-IN' ? "இதோ உங்கள் முடிவுகள்" : "Showing donors");
+        navigate("donors");
       }
     }
 
-    // Modal & Scroll Handlers
-    function scrollToSection(id) {
-      document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+    function speakText(txt) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(txt);
+        u.lang = voiceLanguage;
+        window.speechSynthesis.speak(u);
+      }
     }
+
+    // MODAL HANDLERS
+    function openVoiceModal() { document.getElementById("voiceModal").classList.remove("hidden"); }
+    function closeVoiceModal() { document.getElementById("voiceModal").classList.add("hidden"); toggleSpeech(false); }
     function openSosModal() { document.getElementById("sosModal").classList.remove("hidden"); }
     function closeSosModal() { document.getElementById("sosModal").classList.add("hidden"); }
     function openRegisterModal() { document.getElementById("registerModal").classList.remove("hidden"); }
     function closeRegisterModal() { document.getElementById("registerModal").classList.add("hidden"); }
-    function closePassModal() { document.getElementById("passModal").classList.add("hidden"); }
+    function closeModals(e) { if (e.target.classList.contains("modal-backdrop")) e.target.classList.add("hidden"); }
+
+    function showToast(msg) {
+      const t = document.getElementById("toastBox");
+      document.getElementById("toastMsg").innerText = msg;
+      t.classList.remove("hidden");
+      setTimeout(() => t.classList.add("hidden"), 4000);
+    }
   </script>
 </body>
 </html>

@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, request, jsonify, g
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "donorfinder-lifestream-secret-2026")
+app.secret_key = os.environ.get("SECRET_KEY", "donorfinder-plus-plus-secret-2026")
 DATABASE = os.environ.get("DB_PATH", "donors.db")
 
 # Cache to prevent duplicate SOS broadcasts within 10 minutes (600 seconds)
@@ -116,7 +116,7 @@ def init_db():
             )
         """)
 
-        # LifeStream League Teams table (Colleges, Hostels, Departments)
+        # VeinGuard Arena Teams table (Colleges, Hostels, Departments)
         c.execute("""
             CREATE TABLE IF NOT EXISTS teams (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -210,41 +210,34 @@ init_db()
 def index():
     return render_template("index.html")
 
-# API: Load Dashboard Data (Compatible with DonorFinder frontend)
+# API: Load Dashboard Data (donorfinder++ network)
 @app.route("/api/data", methods=["GET"])
 def api_data():
     db = get_db()
     c = db.cursor()
     cutoff = cutoff_date_str()
 
-    # Active verified donors who are not in the 90-day cooldown
     c.execute("""
         SELECT * FROM donors 
         WHERE available = 1 AND verified = 1 AND (last_donation IS NULL OR last_donation <= ?)
     """, (cutoff,))
     available_donors = [dict(r) for r in c.fetchall()]
 
-    # Count protected donors currently in 90-day recovery
     c.execute("SELECT COUNT(*) FROM donors WHERE available = 1 AND last_donation > ?", (cutoff,))
     protected_count = c.fetchone()[0]
 
-    # Hospitals
     c.execute("SELECT * FROM hospitals WHERE verified = 1")
     hospitals_list = [dict(r) for r in c.fetchall()]
 
-    # Blood requests
     c.execute("SELECT * FROM blood_requests ORDER BY created_at DESC")
     requests_list = [dict(r) for r in c.fetchall()]
 
-    # Upcoming camps
     c.execute("SELECT * FROM camps WHERE camp_date >= DATE('now') ORDER BY camp_date ASC")
     camps_list = [dict(r) for r in c.fetchall()]
 
-    # Teams / LifeStream League
     c.execute("SELECT * FROM teams ORDER BY units DESC")
     teams_list = [dict(r) for r in c.fetchall()]
 
-    # Real-time lives saved calculation
     c.execute("SELECT SUM(units) FROM blood_requests WHERE status = 'fulfilled'")
     fulfilled_units = c.fetchone()[0] or 0
     total_units_collected = 1248 + (fulfilled_units * 3)
@@ -263,7 +256,7 @@ def api_data():
         }
     })
 
-# API: Create / Broadcast Emergency SOS or Register Camp
+# API: Create / Broadcast Emergency SOS
 @app.route("/api/data", methods=["POST"])
 def api_create():
     data = request.json or {}
@@ -297,7 +290,6 @@ def api_create():
                     "error": f"⚠️ Duplicate Alert Suppressed: An identical SOS for {patient_name} at {hospital} was dispatched {int((curr_time - last_time)//60)}m ago. Cooldown: {remaining_sec}s."
                 }), 409
 
-        # Also check database for active duplicates
         c.execute("SELECT id, hospital FROM blood_requests WHERE status = 'active' AND LOWER(patient_name) = ? AND LOWER(hospital) = ?", (patient_name.lower(), hospital.lower()))
         existing = c.fetchone()
         if existing:
@@ -329,7 +321,7 @@ def api_create():
                 "success": True,
                 "radiusKm": radius_km,
                 "alertedCount": alerted_count,
-                "preview": f"🚨 EMERGENCY: {blood_group} blood needed at {hospital}. Contact: {contact}."
+                "preview": f"🚨 EMERGENCY: {blood_group} blood needed at {hospital}. Contact: {contact}. (Shared via DonorFinder++)"
             }
         }), 201
 
@@ -353,24 +345,6 @@ def api_create():
         camp_id = c.lastrowid
         db.commit()
         c.execute("SELECT * FROM camps WHERE id = ?", (camp_id,))
-        return jsonify({"item": dict(c.fetchone())}), 201
-
-    elif resource == "hospital":
-        name = data.get("name", "").strip()
-        area = data.get("area", "").strip()
-        address = data.get("address", "").strip()
-        phone = data.get("phone", "").strip()
-        blood_groups = data.get("bloodGroups", "A+, B+, O+, O-").strip()
-        lat = float(data.get("latitude", 13.0827))
-        lng = float(data.get("longitude", 80.2707))
-
-        c.execute("""
-            INSERT INTO hospitals (name, area, address, phone, latitude, longitude, blood_groups, verified, open_24_hours)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 1, 1)
-        """, (name, area, address, phone, lat, lng, blood_groups))
-        hosp_id = c.lastrowid
-        db.commit()
-        c.execute("SELECT * FROM hospitals WHERE id = ?", (hosp_id,))
         return jsonify({"item": dict(c.fetchone())}), 201
 
     return jsonify({"error": "Unknown resource"}), 400
@@ -402,24 +376,6 @@ def api_update():
 
     return jsonify({"error": "Unable to update resource."}), 400
 
-# API: Delete Item
-@app.route("/api/data", methods=["DELETE"])
-def api_delete():
-    data = request.json or {}
-    resource = data.get("resource")
-    item_id = data.get("id")
-    db = get_db()
-    c = db.cursor()
-
-    if resource == "request":
-        c.execute("DELETE FROM blood_requests WHERE id = ?", (item_id,))
-    elif resource == "camp":
-        c.execute("DELETE FROM camps WHERE id = ?", (item_id,))
-    elif resource == "hospital":
-        c.execute("DELETE FROM hospitals WHERE id = ?", (item_id,))
-    db.commit()
-    return jsonify({"ok": True})
-
 # API: User Auth & Registration with Aadhaar Auto-Redaction
 @app.route("/api/auth", methods=["GET", "POST"])
 def api_auth():
@@ -442,14 +398,7 @@ def api_auth():
     data = request.json or {}
     action = data.get("action")
 
-    if action == "login":
-        c.execute("SELECT * FROM donors WHERE phone = ? OR name LIKE ?", (data.get("email"), f"%{data.get('email')}%"))
-        row = c.fetchone()
-        if row:
-            return jsonify({"ok": True, "user": {"id": row["id"], "name": row["name"], "phone": row["phone"], "bloodGroup": row["blood_group"], "donor": dict(row)}})
-        return jsonify({"ok": True})
-
-    elif action == "register":
+    if action == "register":
         name = data.get("name", "").strip()
         phone = data.get("phone", "").strip()
         blood_group = data.get("bloodGroup", "").strip()
@@ -460,8 +409,7 @@ def api_auth():
         last_donation = data.get("lastDonation") or None
         lat = float(data.get("latitude", 13.0827))
         lng = float(data.get("longitude", 80.2707))
-
-        masked_aadhaar = "XXXX-XXXX-" + (raw_aadhaar[-4:] if len(raw_aadhaar) >= 4 else "4589")
+                masked_aadhaar = "XXXX-XXXX-" + (raw_aadhaar[-4:] if len(raw_aadhaar) >= 4 else "4589")
         donor_uid = "DF-" + hashlib.md5(f"{phone}{time.time()}".encode()).hexdigest()[:6].upper()
 
         c.execute("""
@@ -473,9 +421,20 @@ def api_auth():
 
         c.execute("SELECT * FROM donors WHERE id = ?", (new_id,))
         donor = dict(c.fetchone())
-        return jsonify({"ok": True, "user": {"id": new_id, "name": name, "phone": phone, "bloodGroup": blood_group, "donor": donor}}), 201
+        return jsonify({
+            "ok": True,
+            "user": {
+                "id": new_id,
+                "name": name,
+                "phone": phone,
+                "bloodGroup": blood_group,
+                "donor": donor
+            }
+        }), 201
 
     return jsonify({"error": "Unknown auth action"}), 400
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
+
+        masked_aadhaar = "XXXX-

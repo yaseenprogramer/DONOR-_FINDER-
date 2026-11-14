@@ -1,690 +1,300 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DonorFinder++ | Your Comrade During Difficult Times</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#e11d2e">
+<title>Donor++ | Find a blood donor in seconds</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%23e11d2e' d='M32 4C22 20 12 30 12 42a20 20 0 0 0 40 0C52 30 42 20 32 4z'/%3E%3Cpath fill='%23fff' d='M29 32h6v6h6v6h-6v6h-6v-6h-6v-6h6z'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="app-shell">
-        <!-- TOP HOSPITAL HEADER & BILINGUAL VOICE ASSISTANT -->
-        <header class="clinical-header">
-            <div class="brand">
-                <div class="brand-icon"><i class="ri-heart-pulse-fill"></i></div>
-                <div>
-                    <h1>DonorFinder<span>++</span></h1>
-                    <small>Your comrade during difficult times</small>
-                </div>
-            </div>
+<div class="bg"></div>
+<div id="alertBar" class="banner" role="alert" hidden></div>
+<header>
+  <div class="logo">Donor<b>++</b></div>
+  <nav>
+    <button class="on" data-tab="home" data-i="nav1">Dashboard</button>
+    <button data-tab="radar" data-i="nav2">Live radar</button>
+    <button data-tab="account" data-i="nav3">Account</button>
+  </nav>
+  <div class="tools"><span class="pill"><i id="dot" class="off"></i><span id="sync">Connecting…</span></span><button id="lang">தமிழ்</button></div>
+</header>
+<main>
+<section id="home" class="tab on">
+  <div class="hero">
+    <i class="drop" style="--x:8%;--s:16px;--d:7s;--t:0s"></i><i class="drop" style="--x:24%;--s:10px;--d:9s;--t:-3s"></i><i class="drop" style="--x:46%;--s:14px;--d:8s;--t:-5s"></i><i class="drop" style="--x:68%;--s:18px;--d:10s;--t:-2s"></i><i class="drop" style="--x:88%;--s:12px;--d:7.5s;--t:-6s"></i>
+    <svg class="ecgbig" viewBox="0 0 600 60" preserveAspectRatio="none"><polyline points="0,30 160,30 190,6 215,54 240,30 600,30"/></svg>
+    <p class="tag" data-i="tag">Your comrade during difficult times</p>
+    <h1>Blood, found nearby before the clock runs out</h1>
+    <p class="sub">Eligible donors and blood banks near you, alerted live. Responses reach the family the moment a donor taps.</p>
+    <div class="cta"><button class="sos" id="sosBtn" data-i="sos">I need blood now</button><button class="ghost2" id="findBtn" data-i="find">Browse the live radar</button></div>
+  </div>
+  <div class="stats">
+    <div class="stat" style="--i:0"><b data-n="donors">0</b><span data-i="s1">Hero volunteers</span></div>
+    <div class="stat" style="--i:1"><b data-n="banks">0</b><span data-i="s2">Blood banks</span></div>
+    <div class="stat" style="--i:2"><b data-n="eligible">0</b><span data-i="s3">Eligible today</span></div>
+    <div class="stat" style="--i:3"><b data-n="requests">0</b><span data-i="s4">Open requests</span></div>
+  </div>
+  <div id="mine"></div>
+  <h2 class="sec" data-i="bt">Live emergency board</h2>
+  <div id="board" class="list"><div class="skel"></div><div class="skel"></div></div>
+  <div class="steps">
+    <div style="--i:0"><h3 data-i="h1">Verified sign-up</h3><p>Phone OTP, consent and an eligibility declaration before anyone joins.</p></div>
+    <div style="--i:1"><h3 data-i="h2">Cooldown shield</h3><p>Donors inside their 90-day (men) or 120-day (women) gap are never alerted.</p></div>
+    <div style="--i:2"><h3 data-i="h3">Private by default</h3><p>Numbers stay masked. Delete your data any time from your account.</p></div>
+  </div>
+  <p class="note">Life-threatening emergency? Call <a href="tel:108">108</a> (ambulance) or <a href="tel:112">112</a> first. Donor++ connects people and does not replace blood bank screening or cross-matching: always confirm at the hospital.</p>
+</section>
 
-            <!-- FEATURE 1: TAMIL & ENGLISH VOICE ASSISTANT -->
-            <div class="voice-bar">
-                <select id="voice-lang" aria-label="Voice Language">
-                    <option value="en-IN">🇮🇳 English (Voice)</option>
-                    <option value="ta-IN">🇮🇳 தமிழ் (Tamil Voice)</option>
-                </select>
-                <button id="voice-btn" class="btn-voice" onclick="startVoiceAssistant()">
-                    <i class="ri-mic-fill"></i> <span id="voice-label">Speak Command</span>
-                </button>
-            </div>
-        </header>
+<section id="radar" class="tab">
+  <div class="panel">
+    <div class="chips" id="chips" aria-label="Blood group needed"></div>
+    <label>Radius <b id="rv">15</b> km <input type="range" id="rad" min="3" max="60" value="15"></label>
+    <div class="row"><button id="loc" class="ghost">Use my location</button><button id="askBtn" class="go slim">Request this blood group</button></div>
+    <div id="shield" class="shield">Pick a blood group to scan.</div>
+    <div class="legend"><span><i class="lg1"></i>Donor</span><span><i class="lg2"></i>Blood bank</span><span><i class="lg3"></i>Open SOS</span><span><i class="lg4"></i>You</span></div>
+  </div>
+  <div id="map"></div>
+  <div id="list" class="list"></div>
+</section>
 
-        <!-- NAVIGATION TABS -->
-        <nav class="tab-nav">
-            <button class="tab-btn active" onclick="openTab('radar', this)"><i class="ri-radar-line"></i> Live Radar & SOS</button>
-            <button class="tab-btn" onclick="openTab('camps', this)"><i class="ri-community-line"></i> Blood Camps</button>
-            <button class="tab-btn" onclick="openTab('tools', this)"><i class="ri-heart-add-line"></i> Compatibility & Health</button>
-            <button class="tab-btn" onclick="openTab('bank', this)"><i class="ri-hospital-line"></i> Blood Bank Expiry</button>
-            <button class="tab-btn" onclick="openTab('register', this)"><i class="ri-shield-user-line"></i> Verify & Join</button>
-        </nav>
+<section id="account" class="tab"><div id="acct"></div></section>
+</main>
+<footer>Donor++ · RMK Junior Hackathon 2026 · Immanuel Innovators</footer>
 
-        <!-- LIVE VOICE TRANSCRIPT TOAST -->
-        <div id="voice-toast" class="voice-toast hidden">
-            <i class="ri-volume-up-fill"></i> <span id="voice-feedback">Listening...</span>
-        </div>
+<div id="modal" class="modal"><div class="box">
+  <button class="x" id="closeM" aria-label="Close">&times;</button>
+  <h2>Emergency request</h2>
+  <p class="helpline">Life-threatening? Call <a href="tel:108">108</a> or <a href="tel:112">112</a> first.</p>
+  <form id="sosForm">
+    <select id="sg" required aria-label="Blood group needed"></select>
+    <div class="row"><input id="su" type="number" min="1" max="10" value="1" aria-label="Units needed"><select id="su2" aria-label="Urgency"><option value="critical">Critical (within 2 hours)</option><option value="urgent" selected>Urgent (today)</option><option value="planned">Planned (this week)</option></select></div>
+    <input id="sp" placeholder="Patient name" maxlength="40">
+    <input id="sh" placeholder="Hospital and area" maxlength="60">
+    <input id="sc" placeholder="Your contact number" inputmode="numeric" maxlength="10" required>
+    <select id="sa" aria-label="Location"></select>
+    <button class="go">Find and alert donors</button>
+  </form>
+  <div id="sosOut" class="list"></div>
+</div></div>
+<div id="toast" role="status" aria-live="polite"></div>
 
-        <!-- FEATURE 5: VISUAL COUNTER FOR SUCCESSFUL BLOOD TRANSPLANTS -->
-        <section class="hero-counter-bar">
-            <div class="welcome-msg">
-                <span class="badge-live"><span class="dot"></span> LIVE EMERGENCY NETWORK</span>
-                <h2>Welcome back, Hero!</h2>
-            </div>
-            <div class="transplant-counter">
-                <div class="counter-icon"><i class="ri-heart-3-fill"></i></div>
-                <div>
-                    <span class="counter-num" id="transplant-count">1,428</span>
-                    <span class="counter-label">Successful Blood Transplants</span>
-                </div>
-                <button class="btn-celebrate" onclick="recordTransplant()" title="Log Successful Transplant">+1 Life Saved</button>
-            </div>
-        </section>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const G=["A+","A-","B+","B-","AB+","AB-","O+","O-"];
+const CAN={"A+":["A+","A-","O+","O-"],"A-":["A-","O-"],"B+":["B+","B-","O+","O-"],"B-":["B-","O-"],"AB+":G,"AB-":["A-","B-","AB-","O-"],"O+":["O+","O-"],"O-":["O-"]};
+const AREAS={"Chennai Central":[13.0827,80.2707],"Anna Nagar":[13.085,80.2101],"Avadi":[13.1067,80.097],"Ambattur":[13.1143,80.1548],"Tambaram":[12.9249,80.1],"Velachery":[12.9815,80.218],"Tiruvallur":[13.1431,79.9086],"Kanchipuram":[12.8342,79.7036]};
+const TA={nav1:"முகப்பு",nav2:"நேரடி ரேடார்",nav3:"கணக்கு",tag:"கடினமான நேரங்களில் உங்கள் தோழன்",sos:"அவசர இரத்தம் தேவை",find:"நேரடி ரேடாரைப் பார்",s1:"தன்னார்வ நாயகர்கள்",s2:"இரத்த வங்கிகள்",s3:"இன்று தகுதியானவர்கள்",s4:"திறந்த கோரிக்கைகள்",bt:"நேரடி அவசர கோரிக்கைகள்",h1:"சரிபார்க்கப்பட்ட பதிவு",h2:"பாதுகாப்பு கவசம்",h3:"இயல்பாகவே தனியுரிமை"};
+const S={tok:localStorage.tok||"",prof:null,me:{lat:13.0827,lng:80.2707},grp:"O+",mine:JSON.parse(localStorage.mine||"[]"),trk:null,cfg:{},mode:"login",kind:"donor",live:false,online:1};
+const URGL={critical:"Critical",urgent:"Urgent",planned:"Planned"};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const api=async(u,o,m)=>{const r=await fetch(u,{method:m||(o?"POST":"GET"),headers:{"Content-Type":"application/json","X-Token":S.tok},body:o?JSON.stringify(o):undefined});const j=await r.json().catch(()=>({}));if(!r.ok)throw Error(j.error||"Something went wrong");return j};
+const toast=(m,bad)=>{const t=$("#toast");t.textContent=m;t.className="show"+(bad?" bad":"");clearTimeout(toast.t);toast.t=setTimeout(()=>t.className="",4200)};
+const ago=m=>m<1?"just now":m<60?m+" min ago":Math.round(m/60)+" h ago";
+const km=(a,b,c,d)=>{const p=Math.PI/180,h=.5-Math.cos((c-a)*p)/2+Math.cos(a*p)*Math.cos(c*p)*(1-Math.cos((d-b)*p))/2;return 12742*Math.asin(Math.sqrt(h))};
+const shareMsg=r=>`URGENT: ${r.units} unit(s) of ${r.grp} blood needed for ${r.patient}${r.hospital?" at "+r.hospital:""}. Help on Donor++: ${location.origin}`;
+const saveMine=()=>localStorage.mine=JSON.stringify(S.mine);
+function burst(){for(let i=0;i<28;i++){const s=document.createElement("span");s.className="fx";s.textContent=["🩸","❤️","✚"][i%3];s.style.cssText=`left:${Math.random()*100}vw;animation-delay:${Math.random()*.6}s;font-size:${16+Math.random()*16}px`;document.body.append(s);setTimeout(()=>s.remove(),2800)}}
+function ding(){try{navigator.vibrate&&navigator.vibrate([180,80,180]);const c=new(window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();o.frequency.value=880;g.gain.value=.06;o.connect(g);g.connect(c.destination);o.start();setTimeout(()=>{o.stop();c.close()},200)}catch(e){}}
+async function openLater(p){const w=window.open("","_blank");try{const d=await p;w?w.location.href=d.wa:location.href=d.wa;return d}catch(e){w&&w.close();throw e}}
+function locate(cb){
+  if(!navigator.geolocation)return toast("GPS is unavailable, using the selected area",1);
+  navigator.geolocation.getCurrentPosition(p=>{S.me={lat:p.coords.latitude,lng:p.coords.longitude};toast("Location locked");cb&&cb()},()=>toast("GPS was blocked, using the selected area",1),{timeout:8000});
+}
 
-        <!-- TAB 1: LIVE RADAR & FEATURE 4: EMERGENCY REQUEST SYSTEM -->
-        <main id="tab-radar" class="tab-content active">
-            <div class="grid-two-col">
-                <!-- LEFT: SEARCH + SOS BROADCAST -->
-                <div class="card">
-                    <div class="card-head">
-                        <h3><i class="ri-search-eye-line"></i> Find Donors & Hospitals</h3>
-                        <button class="btn-sos-trigger" onclick="toggleSOSModal()"><i class="ri-alarm-warning-fill"></i> Raise Emergency SOS</button>
-                    </div>
+/* i18n */
+$$("[data-i]").forEach(e=>e.dataset.en=e.textContent);
+$("#lang").onclick=()=>{const ta=$("#lang").textContent!="English";$("#lang").textContent=ta?"English":"தமிழ்";$$("[data-i]").forEach(e=>e.textContent=ta&&TA[e.dataset.i]||e.dataset.en)};
 
-                    <div class="filters">
-                        <select id="q-blood" onchange="searchNetwork()">
-                            <option value="All">All Blood Groups</option>
-                            <option value="O-">O- (Universal Donor)</option>
-                            <option value="O+">O+</option>
-                            <option value="A+">A+</option>
-                            <option value="A-">A-</option>
-                            <option value="B+">B+</option>
-                            <option value="B-">B-</option>
-                            <option value="AB+">AB+</option>
-                            <option value="AB-">AB-</option>
-                        </select>
-                        <select id="q-role" onchange="searchNetwork()">
-                            <option value="All">All Verified Sources</option>
-                            <option value="Donor">Hero Volunteers</option>
-                            <option value="Blood Bank">Blood Banks & Hospitals</option>
-                        </select>
-                        <input type="text" id="q-loc" placeholder="Search area (e.g. Anna Nagar, Pattabiram)..." oninput="searchNetwork()">
-                    </div>
+/* live connection */
+const paintOnline=()=>$("#sync").textContent=S.live?`Live · ${S.online} online`:"Reconnecting…";
+function setLive(v){S.live=v;$("#dot").className=v?"":"off";paintOnline()}
+let rt;const refresh=()=>{clearTimeout(rt);rt=setTimeout(()=>{stats();board();mine();$("#radar").classList.contains("on")&&search(false)},250)};
+function live(){
+  const es=new EventSource("/api/stream");
+  es.onopen=()=>{setLive(true);refresh()};
+  es.onerror=()=>setLive(false);
+  es.addEventListener("presence",e=>{S.online=JSON.parse(e.data).online;paintOnline()});
+  es.addEventListener("request_new",e=>{const r=JSON.parse(e.data);refresh();matchAlert(r)});
+  es.addEventListener("request_update",e=>{const r=JSON.parse(e.data);refresh();if(S.trk&&S.trk.id==r.id)track(true)});
+  ["stats","donor_new","stock"].forEach(v=>es.addEventListener(v,refresh));
+}
+function matchAlert(r){
+  const p=S.prof;if(!p||p.kind!="donor"||!p.available||p.wait||S.mine.some(x=>x.id==r.id)||!CAN[r.grp].includes(p.grp))return;
+  const d=km(p.lat,p.lng,r.lat,r.lng);if(d>25)return;
+  ding();const b=$("#alertBar");b.hidden=false;
+  b.innerHTML=`<b>${esc(r.grp)} needed ${d.toFixed(1)} km away</b><span>${r.units} unit(s) for ${esc(r.patient)}${r.hospital?" at "+esc(r.hospital):""}</span><button class="wa" data-r="${r.id}">I can donate</button><button class="x2" id="bx" aria-label="Dismiss">&times;</button>`;
+}
 
-                    <div id="results-list" class="scroll-list"></div>
-                </div>
+/* dashboard */
+function count(e,to,from){const t0=performance.now();(function f(t){const p=Math.min((t-t0)/900,1);e.textContent=Math.round(from+(to-from)*p);if(p<1)requestAnimationFrame(f)})(t0)}
+async function stats(){try{const s=await api("/api/stats");S.cfg.demo=s.demo;S.online=s.online;$$("[data-n]").forEach(e=>{const to=s[e.dataset.n];if(e.dataset.v!=to){count(e,to,+e.dataset.v||0);e.dataset.v=to}});paintOnline()}catch(e){}}
+const reqCard=(r,i,mi)=>`<div class="card ${r.urgency}" style="--i:${i}"><div class="bt">${esc(r.grp)}</div><div><b>${r.units} unit${r.units>1?"s":""} for ${esc(r.patient)} <span class="badge ${r.urgency}">${URGL[r.urgency]}</span></b><small>${esc(r.hospital||"Location shared")} · ${r.km} km · ${ago(r.ago)} · ${r.responders} responding</small></div><div class="acts">${mi.has(r.id)?'<span class="you">Your request</span>':`<button class="wa" data-r="${r.id}">I can donate</button>`}<a class="shr" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(shareMsg(r))}">Share</a></div></div>`;
+async function board(){try{const d=await api(`/api/requests?lat=${S.me.lat}&lng=${S.me.lng}`);const mi=new Set(S.mine.map(x=>x.id));$("#board").innerHTML=d.requests.map((r,i)=>reqCard(r,i,mi)).join("")||'<p class="empty">No open requests right now. That is good news.</p>'}catch(e){}}
+async function mine(){
+  const out=[];
+  for(const m of S.mine.slice()){
+    try{const d=await api(`/api/request/${m.id}?secret=${encodeURIComponent(m.secret)}`);
+      if(d.request.status!="open"){S.mine=S.mine.filter(x=>x.id!=m.id);continue}
+      out.push(`<div class="card mine"><div class="bt">${esc(d.request.grp)}</div><div><b>Your request for ${esc(d.request.patient)}</b><small>${d.responders.length} donor${d.responders.length==1?"":"s"} responding · ${d.matches.length} more nearby</small></div><button class="go slim" data-t="${m.id}">Track live</button></div>`)}
+    catch(e){S.mine=S.mine.filter(x=>x.id!=m.id)}
+  }
+  saveMine();$("#mine").innerHTML=out.length?`<h2 class="sec">Your active requests</h2><div class="list">${out.join("")}</div>`:"";
+}
+async function respond(id){
+  if(!S.prof){toast("Log in as a donor to respond",1);S.mode="login";go("account");return}
+  try{await openLater(api("/api/respond",{id}));toast("The family was notified instantly. Thank you!");$("#alertBar").hidden=true;burst();refresh()}catch(x){toast(x.message,1)}
+}
+document.addEventListener("click",e=>{
+  const r=e.target.closest("[data-r]");if(r)respond(+r.dataset.r);
+  const t=e.target.closest("[data-t]");if(t){S.trk=S.mine.find(x=>x.id==+t.dataset.t);S.trk&&track()}
+  if(e.target.id=="bx")$("#alertBar").hidden=true;
+});
 
-                <!-- RIGHT: INTERACTIVE MAP & ACTIVE SOS FEED -->
-                <div class="right-stack">
-                    <div class="card map-card">
-                        <div id="radar-map"></div>
-                    </div>
+/* tabs */
+function go(id){$$("nav button").forEach(b=>b.classList.toggle("on",b.dataset.tab==id));$$(".tab").forEach(s=>s.classList.toggle("on",s.id==id));scrollTo({top:0,behavior:"smooth"});if(id=="radar"){initMap();search(true)}if(id=="home")refresh();if(id=="account")acct()}
+$$("nav button").forEach(b=>b.onclick=()=>go(b.dataset.tab));
+$("#findBtn").onclick=()=>go("radar");
 
-                    <div class="card">
-                        <div class="card-head">
-                            <h3><i class="ri-siren-line"></i> Active Emergency Requests</h3>
-                            <span class="pill-red" id="active-sos-count">0 Active</span>
-                        </div>
-                        <div id="sos-feed" class="sos-feed-list"></div>
-                    </div>
-                </div>
-            </div>
-        </main>
+/* radar */
+let map,layer;
+function initMap(){
+  if(map){map.invalidateSize();return}
+  if(!window.L){$("#map").textContent="The map needs an internet connection.";return}
+  map=L.map("map",{zoomControl:false}).setView([S.me.lat,S.me.lng],11);
+  L.control.zoom({position:"bottomright"}).addTo(map);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"&copy; OpenStreetMap contributors",maxZoom:19}).addTo(map);
+  layer=L.layerGroup().addTo(map);
+}
+$("#chips").innerHTML=G.map(g=>`<button class="${g==S.grp?"on":""}">${g}</button>`).join("");
+$("#chips").onclick=e=>{if(e.target.tagName!="BUTTON")return;S.grp=e.target.textContent;$$("#chips button").forEach(b=>b.classList.toggle("on",b==e.target));search(true)};
+$("#rad").oninput=e=>$("#rv").textContent=e.target.value;
+$("#rad").onchange=()=>search(true);
+$("#loc").onclick=()=>locate(()=>search(true));
+$("#askBtn").onclick=()=>openSOS(S.grp);
+const pin=c=>L.divIcon({className:"",html:`<i class="pin ${c}"></i>`,iconSize:[26,26],iconAnchor:[13,26],popupAnchor:[0,-24]});
+const card=(x,i)=>`<div class="card" style="--i:${i}"><div class="bt ${x.kind}">${x.kind=="donor"?esc(x.grp):"Bank"}</div><div><b>${esc(x.name)}</b><small>${x.kind=="donor"?(x.exact?"Exact match":"Compatible"):(x.units!=null?x.units+" compatible units in stock":"Call to confirm stock")} · ${x.phone}</small></div><span class="km">${x.km} km</span></div>`;
+async function search(fit){
+  if(fit)$("#list").innerHTML='<div class="skel"></div><div class="skel"></div><div class="skel"></div>';
+  try{
+    const d=await api(`/api/search?group=${encodeURIComponent(S.grp)}&lat=${S.me.lat}&lng=${S.me.lng}&radius=${$("#rad").value}`);
+    const mi=new Set(S.mine.map(x=>x.id));
+    $("#shield").innerHTML=`Cooldown shield: <b>${d.hidden}</b> recently donated donors hidden · Compatible groups: ${d.compatible.join(", ")}`;
+    $("#list").innerHTML=d.sos.map((r,i)=>reqCard(r,i,mi)).join("")+d.results.map(card).join("")||'<p class="empty">No donors in range. Widen the radius.</p>';
+    if(!map)return;
+    layer.clearLayers();
+    const ring=L.circle([S.me.lat,S.me.lng],{radius:$("#rad").value*1000,color:"#e11d2e",weight:1.5,fillOpacity:.06}).addTo(layer);
+    L.marker([S.me.lat,S.me.lng],{icon:L.divIcon({className:"",html:'<i class="me"></i>',iconSize:[18,18]})}).addTo(layer);
+    const b=ring.getBounds();
+    d.results.forEach(x=>{b.extend([x.lat,x.lng]);L.marker([x.lat,x.lng],{icon:pin(x.kind)}).bindPopup(`<b>${esc(x.name)}</b><br>${x.kind=="donor"?esc(x.grp):"Blood bank"} · ${x.km} km`).addTo(layer)});
+    d.sos.forEach(r=>{b.extend([r.lat,r.lng]);L.marker([r.lat,r.lng],{icon:L.divIcon({className:"",html:'<i class="sp">SOS</i>',iconSize:[34,34],iconAnchor:[17,17]})}).bindPopup(`<b>${esc(r.grp)} needed</b><br>${r.units} unit(s) · ${esc(r.hospital||"Location shared")}`).addTo(layer)});
+    if(fit)map.fitBounds(b,{padding:[30,30],maxZoom:14});
+  }catch(e){fit&&toast(e.message,1)}
+}
 
-        <!-- TAB 2: FEATURE 2 - BLOOD CAMP CO-ORDINATION NETWORK -->
-        <main id="tab-camps" class="tab-content hidden">
-            <div class="card">
-                <div class="card-head">
-                    <div>
-                        <h3><i class="ri-map-pin-user-fill"></i> Nearby Blood Donation Camps</h3>
-                        <p class="subtext">Sorted automatically from your live GPS location</p>
-                    </div>
-                    <button class="btn-primary" onclick="locateCampsNearMe()"><i class="ri-navigation-fill"></i> Find Camps Near Me</button>
-                </div>
-                <div id="camps-grid" class="cards-grid"></div>
-            </div>
-        </main>
+/* account */
+const sel=(id,o,ph)=>`<select id="${id}">${ph?`<option value="">${ph}</option>`:""}${o.map(x=>`<option>${x}</option>`).join("")}</select>`;
+function authHTML(){
+  const j=S.mode=="join",h=S.kind=="hospital";
+  return `<div class="form"><div class="seg"><button type="button" data-m="login" class="${j?"":"on"}">Log in</button><button type="button" data-m="join" class="${j?"on":""}">Join</button></div>`+(j?
+  `<div class="seg"><button type="button" data-k="donor" class="${h?"":"on"}">Hero volunteer</button><button type="button" data-k="hospital" class="${h?"on":""}">Hospital or blood bank</button></div>
+  <form id="joinF" class="fgrid"><input id="jn" placeholder="${h?"Hospital or blood bank name":"Full name"}" required maxlength="60" autocomplete="name">
+  ${h?"":sel("jg",G,"Blood group")+sel("js",["Male","Female"],"Sex (sets your donation gap)")}
+  <input id="jp" placeholder="10-digit mobile number" inputmode="numeric" maxlength="10" required>
+  <label>Area ${sel("ja",Object.keys(AREAS))}</label><button type="button" id="jgps" class="ghost">Detect GPS instead</button>
+  ${h?"":'<label>Last donation date (optional)<input type="date" id="jl"></label><label class="chk"><input type="checkbox" id="je" required> I am 18 to 65 years old, weigh at least 45 kg and feel healthy</label>'}
+  <label class="chk"><input type="checkbox" id="jc" required> I agree to be contacted in medical emergencies</label>
+  <div class="row"><input id="jo" placeholder="4-digit OTP" inputmode="numeric" maxlength="4"><button type="button" class="ghost" data-otp="jp">Send OTP</button></div>
+  <button class="go">Create account</button></form>`:
+  `<form id="loginF" class="fgrid"><input id="lp" placeholder="Registered mobile number" inputmode="numeric" maxlength="10" required><div class="row"><input id="lo" placeholder="4-digit OTP" inputmode="numeric" maxlength="4"><button type="button" class="ghost" data-otp="lp">Send OTP</button></div><button class="go">Log in</button>${S.cfg.demo?'<button type="button" class="ghost" data-demo="1">Try a demo donor (one tap)</button>':""}</form>`)+`</div>`;
+}
+function profHTML(p){
+  const d=p.kind=="donor";
+  return `<div class="form prof"><div class="head"><div class="bt">${d?esc(p.grp):"Bank"}</div><div><h3>${esc(p.name)}</h3><small>${p.pass_id} · ${d?"Verified donor":"Verified partner"}</small></div></div>`+
+  (d?`<div class="eligrow"><div class="ring" style="--p:${p.wait?Math.round((1-p.wait/p.interval)*100):100}"><b>${p.wait?p.wait+"d":"Ready"}</b></div><div><b>${p.wait?"Eligible again on "+p.next:"Eligible to donate now"}</b><small>${p.interval}-day gap for ${p.sex=="F"?"women":"men"} (MoHFW guideline)</small></div></div>
+  <label class="sw"><input type="checkbox" data-av="1" ${p.available?"checked":""}><span></span> Show me in searches and live alerts</label>
+  <button class="go" data-a="donated">I donated today</button><button class="ghost" data-a="loc">Update my location</button>`
+  :`<h3 class="sub2">Live blood stock (units)</h3><div class="stk">${G.map(g=>`<label>${g}<input type="number" min="0" max="999" value="${(p.stock||{})[g]||0}" data-g="${g}"></label>`).join("")}</div><button class="go" data-a="stock">Publish stock live</button>`)+
+  `<div class="row"><button class="ghost" data-a="out">Log out</button><button class="ghost danger" data-a="del">Delete my account</button></div></div>`;
+}
+function acct(){$("#acct").innerHTML=S.prof?profHTML(S.prof):authHTML()}
+function signin(d){S.tok=d.token;localStorage.tok=d.token;S.prof=d.me;S.mode="login";acct();refresh();burst();toast("Welcome, "+d.me.name.split(" ")[0])}
+async function loadProf(){if(!S.tok)return;try{S.prof=(await api("/api/me")).me}catch(e){S.tok="";localStorage.tok="";S.prof=null}}
+$("#acct").addEventListener("click",async e=>{
+  const t=e.target;
+  if(t.dataset.m){S.mode=t.dataset.m;return acct()}
+  if(t.dataset.k){S.kind=t.dataset.k;return acct()}
+  if(t.dataset.otp){try{const d=await api("/api/otp",{phone:$("#"+t.dataset.otp).value});toast(d.demo_otp?`Demo OTP: ${d.demo_otp} (SMS in production)`:"OTP sent by SMS")}catch(x){toast(x.message,1)}return}
+  if(t.id=="jgps")return locate();
+  if(t.dataset.demo){try{signin(await api("/api/demo-login",{}))}catch(x){toast(x.message,1)}return}
+  const a=t.dataset.a;if(!a)return;
+  try{
+    if(a=="out"){S.tok="";localStorage.tok="";S.prof=null;acct();return toast("Logged out")}
+    if(a=="del"){if(!confirm("Delete your account and data permanently?"))return;await api("/api/me",null,"DELETE");S.tok="";localStorage.tok="";S.prof=null;acct();refresh();return toast("Your data was deleted")}
+    if(a=="donated"){S.prof=(await api("/api/me/donated",{})).me;acct();refresh();toast("Thank you, hero! Your cooldown has started.");return burst()}
+    if(a=="loc")return locate(async()=>{S.prof=(await api("/api/me/location",{lat:S.me.lat,lng:S.me.lng})).me;toast("Location updated")});
+    if(a=="stock"){const st={};$$("[data-g]").forEach(i=>st[i.dataset.g]=+i.value||0);S.prof=(await api("/api/me/stock",{stock:st})).me;refresh();toast("Stock published live to everyone")}
+  }catch(x){toast(x.message,1)}
+});
+$("#acct").addEventListener("change",async e=>{
+  if(e.target.id=="ja"){const[a,b]=AREAS[e.target.value];S.me={lat:a,lng:b}}
+  if(e.target.dataset.av){try{S.prof=(await api("/api/me/available",{on:e.target.checked})).me;refresh();toast(S.prof.available?"You are visible to requests":"You are hidden from searches")}catch(x){toast(x.message,1)}}
+});
+$("#acct").addEventListener("submit",async e=>{
+  e.preventDefault();
+  try{
+    if(e.target.id=="loginF")signin(await api("/api/login",{phone:$("#lp").value,otp:$("#lo").value}));
+    if(e.target.id=="joinF"){const h=S.kind=="hospital";signin(await api("/api/register",{kind:S.kind,name:$("#jn").value,group:h?"":$("#jg").value,sex:h?"":($("#js").value=="Female"?"F":"M"),phone:$("#jp").value,otp:$("#jo").value,last_donation:h?"":$("#jl").value,declared:h?true:$("#je").checked,consent:$("#jc").checked,lat:S.me.lat,lng:S.me.lng}))}
+  }catch(x){toast(x.message,1)}
+});
 
-        <!-- TAB 3: FEATURE 6 (COMPATIBILITY MATCHER) & FEATURE 8 (HEALTH CHECKUP REMINDER) -->
-        <main id="tab-tools" class="tab-content hidden">
-            <div class="grid-two-col">
-                <!-- BLOOD COMPATIBILITY MATCHER -->
-                <div class="card">
-                    <h3><i class="ri-drop-fill"></i> Smart Blood Compatibility Matcher</h3>
-                    <p class="subtext">Select a patient's blood group to see exact safe donor matches.</p>
-                    <div class="compat-selector">
-                        <label>Patient Blood Group:</label>
-                        <select id="compat-select" onchange="updateCompatibility()">
-                            <option value="O-">O-</option>
-                            <option value="O+" selected>O+</option>
-                            <option value="A-">A-</option>
-                            <option value="A+">A+</option>
-                            <option value="B-">B-</option>
-                            <option value="B+">B+</option>
-                            <option value="AB-">AB-</option>
-                            <option value="AB+">AB+ (Universal Recipient)</option>
-                        </select>
-                    </div>
-                    <div class="compat-box">
-                        <div class="compat-row">
-                            <span class="label-tag green">CAN RECEIVE FROM:</span>
-                            <div id="can-receive" class="chip-group"></div>
-                        </div>
-                        <div class="compat-row">
-                            <span class="label-tag red">CAN DONATE TO:</span>
-                            <div id="can-donate" class="chip-group"></div>
-                        </div>
-                    </div>
-                </div>
+/* emergency request and live tracker */
+$("#sg").innerHTML='<option value="">Blood group needed</option>'+G.map(g=>`<option>${g}</option>`).join("");
+$("#sa").innerHTML='<option value="gps">My GPS location</option>'+Object.keys(AREAS).map(a=>`<option>${a}</option>`).join("");
+$("#sa").onchange=e=>{if(e.target.value=="gps")locate();else{const[a,b]=AREAS[e.target.value];S.me={lat:a,lng:b}}};
+function openSOS(g){$("#modal").classList.add("show");$("#sosOut").innerHTML="";$("#sosForm").style.display="";S.trk=null;if(g)$("#sg").value=g;$("#sc").value=localStorage.contact||"";$("#sa").value="gps";locate()}
+const closeM=()=>{$("#modal").classList.remove("show");S.trk=null};
+$("#sosBtn").onclick=()=>openSOS();
+$("#closeM").onclick=closeM;
+document.addEventListener("keydown",e=>e.key=="Escape"&&closeM());
+$("#sosForm").onsubmit=async e=>{
+  e.preventDefault();
+  try{
+    const q={group:$("#sg").value,units:$("#su").value,urgency:$("#su2").value,patient:$("#sp").value||"a patient",hospital:$("#sh").value,contact:$("#sc").value};
+    const d=await api("/api/request",{...q,lat:S.me.lat,lng:S.me.lng});
+    localStorage.contact=q.contact;S.mine.push({id:d.id,secret:d.secret,grp:q.group});saveMine();
+    S.trk={id:d.id,secret:d.secret,n:0};track();refresh();
+  }catch(x){toast(x.message,1)}
+};
+const trackHTML=d=>{
+  const r=d.request,open=r.status=="open",n=d.responders.length;
+  return `<div class="steps2"><span class="st on">1 Alerted</span><span class="st ${n?"on":""}">2 Donors responding</span><span class="st ${r.status=="fulfilled"?"on":""}">3 Fulfilled</span></div>
+  <p class="shield">#${r.id} · ${esc(r.grp)} · ${r.units} unit(s) · <span class="badge ${r.urgency}">${URGL[r.urgency]}</span> · ${open?"Open":esc(r.status)}</p>
+  <h3 class="sub2">Responding now (${n})</h3>`+(d.responders.map(x=>`<div class="card resp"><div class="bt">${esc(x.grp)}</div><div><b>${esc(x.name)}</b><small>${x.km} km away · tap to coordinate</small></div><a class="wa" target="_blank" rel="noopener" href="${x.wa}">WhatsApp</a></div>`).join("")||'<p class="empty">Waiting for donors. Keep this window open: you will be pinged live.</p>')+
+  (open?`<h3 class="sub2">Alert more donors (${d.matches.length})</h3>`+(d.matches.map((x,i)=>`<div class="card" style="--i:${i}"><div class="bt ${x.kind}">${x.kind=="donor"?esc(x.grp):"Bank"}</div><div><b>${esc(x.name)}</b><small>${x.km} km away${x.units!=null?" · "+x.units+" units":""}</small></div><a class="wa" data-al="1" target="_blank" rel="noopener" href="${x.wa}">Alert</a></div>`).join("")||'<p class="empty">Everyone nearby is already alerted or responding.</p>')+
+  `<a class="wa big" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(shareMsg({units:r.units,grp:r.grp,patient:r.patient,hospital:r.hospital}))}">Share in WhatsApp groups</a><div class="row"><button class="go" data-c="fulfilled">Mark fulfilled</button><button class="ghost" data-c="cancelled">Cancel request</button></div>`:"");
+};
+async function track(quiet){
+  const t=S.trk;if(!t)return;
+  try{
+    const d=await api(`/api/request/${t.id}?secret=${encodeURIComponent(t.secret)}`);
+    const n=d.responders.length;if(quiet&&n>(t.n||0)){ding();burst();toast(d.responders[n-1].name+" can donate!")}t.n=n;
+    $("#sosForm").style.display="none";$("#modal").classList.add("show");$("#sosOut").innerHTML=trackHTML(d);
+  }catch(e){toast(e.message,1)}
+}
+$("#sosOut").addEventListener("click",async e=>{
+  const a=e.target.closest("[data-al]");if(a){a.classList.add("sent");a.textContent="Alerted ✓"}
+  const c=e.target.dataset.c;if(c&&S.trk){
+    try{await api(`/api/request/${S.trk.id}/close`,{secret:S.trk.secret,status:c});S.mine=S.mine.filter(x=>x.id!=S.trk.id);saveMine();closeM();refresh();toast(c=="fulfilled"?"Marked fulfilled. Thank you for sharing!":"Request cancelled");c=="fulfilled"&&burst()}catch(x){toast(x.message,1)}
+  }
+});
 
-                <!-- FEATURE 8: PRE-DONATION HEALTH CHECKUP REMINDER -->
-                <div class="card">
-                    <h3><i class="ri-stethoscope-line"></i> Pre-Donation Health Checkup</h3>
-                    <p class="subtext">Complete this quick clinical readiness check before donating.</p>
-                    <div class="checklist">
-                        <label class="check-item"><input type="checkbox" class="health-chk" onchange="evaluateHealth()"> Age is between 18 and 65 years</label>
-                        <label class="check-item"><input type="checkbox" class="health-chk" onchange="evaluateHealth()"> Body weight is above 50 kg</label>
-                        <label class="check-item"><input type="checkbox" class="health-chk" onchange="evaluateHealth()"> Hemoglobin level is at least 12.5 g/dL</label>
-                        <label class="check-item"><input type="checkbox" class="health-chk" onchange="evaluateHealth()"> Had a healthy meal & hydrated in last 4 hours</label>
-                        <label class="check-item"><input type="checkbox" class="health-chk" onchange="evaluateHealth()"> No fever, cold, or antibiotics in last 14 days</label>
-                        <label class="check-item"><input type="checkbox" class="health-chk" onchange="evaluateHealth()"> At least 90 days since last whole blood donation</label>
-                    </div>
-                    <div id="health-result" class="health-banner pending">
-                        Check all 6 clinical criteria to unlock your Donation Readiness Certificate.
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- TAB 4: FEATURE 7 - BLOOD COMPONENT EXPIRY TRACKER -->
-        <main id="tab-bank" class="tab-content hidden">
-            <div class="card">
-                <div class="card-head">
-                    <div>
-                        <h3><i class="ri-timer-flash-line"></i> Blood Component Expiry Monitor (Hospitals & Banks)</h3>
-                        <p class="subtext">Prevents wastage of short-shelf-life Platelets (5 days) and PRBC units</p>
-                    </div>
-                </div>
-
-                <form class="inline-form" onsubmit="addInventory(event)">
-                    <input type="text" id="inv-bank" placeholder="Hospital / Blood Bank Name" required>
-                    <select id="inv-comp" required>
-                        <option value="Platelets (RDP)">Platelets (5-Day Shelf Life)</option>
-                        <option value="Packed Red Cells (PRBC)">Packed Red Cells (35-Day)</option>
-                        <option value="Fresh Frozen Plasma (FFP)">Fresh Frozen Plasma (1-Year)</option>
-                    </select>
-                    <select id="inv-blood" required>
-                        <option value="O+">O+</option><option value="O-">O-</option>
-                        <option value="A+">A+</option><option value="A-">A-</option>
-                        <option value="B+">B+</option><option value="B-">B-</option>
-                        <option value="AB+">AB+</option><option value="AB-">AB-</option>
-                    </select>
-                    <input type="number" id="inv-units" min="1" value="5" placeholder="Units" required>
-                    <input type="date" id="inv-expiry" required>
-                    <button type="submit" class="btn-primary">+ Log Stock</button>
-                </form>
-
-                <div class="table-wrap">
-                    <table class="clinical-table">
-                        <thead>
-                            <tr>
-                                <th>Hospital / Blood Bank</th>
-                                <th>Component</th>
-                                <th>Group</th>
-                                <th>Units</th>
-                                <th>Expiry Date</th>
-                                <th>Shelf-Life Alert</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inventory-tbody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </main>
-
-        <!-- TAB 5: FEATURE 3 - AADHAAR PHOTO VERIFICATION & DIGITAL DONOR PASS -->
-        <main id="tab-register" class="tab-content hidden">
-            <div class="grid-two-col">
-                <div class="card">
-                    <h3><i class="ri-verified-badge-line"></i> Verified Hero Registration</h3>
-                    <p class="subtext">Upload ID proof photo for instant verified badge & Digital Donor Pass.</p>
-                    <form id="verify-form" onsubmit="registerHero(event)" class="stack-form">
-                        <input type="text" id="reg-name" placeholder="Full Name or Hospital Name" required>
-                        <select id="reg-role">
-                            <option value="Donor">Hero Volunteer Donor</option>
-                            <option value="Blood Bank">Verified Hospital / Blood Bank</option>
-                        </select>
-                        <select id="reg-blood" required>
-                            <option value="O+">O+</option><option value="O-">O-</option>
-                            <option value="A+">A+</option><option value="A-">A-</option>
-                            <option value="B+">B+</option><option value="B-">B-</option>
-                            <option value="AB+">AB+</option><option value="AB-">AB-</option>
-                            <option value="All">All Groups (Hospital Hub)</option>
-                        </select>
-                        <input type="text" id="reg-loc" placeholder="Area / City (e.g. Pattabiram, Chennai)" required>
-                        <input type="tel" id="reg-phone" placeholder="WhatsApp Number (10 digits)" required>
-                        
-                        <label class="file-upload-box">
-                            <i class="ri-image-add-line"></i>
-                            <span id="file-label">Upload Aadhaar / Govt ID Photo for Verification</span>
-                            <input type="file" id="reg-id-photo" accept="image/*" required onchange="previewIDPhoto(this)">
-                        </label>
-                        <div id="id-preview-status" class="verify-note hidden">
-                            <i class="ri-shield-check-fill"></i> ID Photo Attached (Number auto-masked for privacy)
-                        </div>
-
-                        <div class="row-gap">
-                            <button type="button" class="btn-outline" onclick="detectUserGPS()"><i class="ri-gps-line"></i> Lock My GPS</button>
-                            <span id="gps-badge" class="gps-tag">Default: Chennai</span>
-                        </div>
-                        <input type="hidden" id="reg-lat" value="13.0827">
-                        <input type="hidden" id="reg-lng" value="80.2707">
-
-                        <label class="small-lbl">Last Blood Donation Date:</label>
-                        <input type="date" id="reg-last-date" required>
-
-                        <button type="submit" class="btn-primary">Verify & Generate Digital Pass</button>
-                    </form>
-                </div>
-
-                <!-- DIGITAL DONOR ID PASS -->
-                <div class="card center-card">
-                    <div id="digital-pass" class="donor-pass">
-                        <div class="pass-top">
-                            <span><i class="ri-heart-pulse-fill"></i> DONORFINDER++</span>
-                            <span class="verified-chip"><i class="ri-checkbox-circle-fill"></i> ID VERIFIED</span>
-                        </div>
-                        <div class="pass-mid">
-                            <div class="pass-blood" id="pass-blood">O+</div>
-                            <div>
-                                <h4 id="pass-name">Hero Volunteer</h4>
-                                <p id="pass-loc">Chennai, Tamil Nadu</p>
-                                <p id="pass-phone">+91 XXXXXXXXXX</p>
-                            </div>
-                        </div>
-                        <div class="pass-bot">
-                            <span id="pass-status">90-Day Shield: ELIGIBLE</span>
-                            <span>Your comrade during difficult times</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- EMERGENCY SOS MODAL WITH FEATURE 9: DUPLICATE REQUEST ALERT -->
-    <div id="sos-modal" class="modal hidden">
-        <div class="modal-card">
-            <div class="card-head">
-                <h3><i class="ri-alarm-warning-fill text-red"></i> Emergency Blood Request</h3>
-                <button class="close-btn" onclick="toggleSOSModal()">&times;</button>
-            </div>
-            <div id="duplicate-alert-box" class="dup-alert hidden">
-                <i class="ri-error-warning-fill"></i>
-                <div>
-                    <strong id="dup-msg">Duplicate Alert Detected!</strong>
-                    <p>An active request already exists. Confirm only if extra units are needed.</p>
-                    <button type="button" class="btn-warn-sm" onclick="submitEmergency(true)">Confirm & Broadcast Anyway</button>
-                </div>
-            </div>
-            <form onsubmit="event.preventDefault(); submitEmergency(false);" class="stack-form">
-                <input type="text" id="sos-patient" placeholder="Patient Full Name" required>
-                <select id="sos-blood" required>
-                    <option value="O-">O- (Urgent)</option><option value="O+">O+</option>
-                    <option value="A+">A+</option><option value="A-">A-</option>
-                    <option value="B+">B+</option><option value="B-">B-</option>
-                    <option value="AB+">AB+</option><option value="AB-">AB-</option>
-                </select>
-                <input type="text" id="sos-hospital" placeholder="Hospital Name & Ward" required>
-                <input type="number" id="sos-units" min="1" max="10" value="2" placeholder="Units Needed" required>
-                <input type="tel" id="sos-phone" placeholder="Attender WhatsApp Number" required>
-                <button type="submit" class="btn-sos-submit">Broadcast SOS Alert Now</button>
-            </form>
-        </div>
-    </div>
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        // --- MAP INITIALIZATION ---
-        let map = L.map('radar-map').setView([13.0827, 80.2707], 11);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap'
-        }).addTo(map);
-        let markers = L.layerGroup().addTo(map);
-        let userCoords = { lat: 13.0827, lng: 80.2707 };
-
-        // --- TAB NAVIGATION ---
-        function openTab(tabName, btn) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById('tab-' + tabName).classList.remove('hidden');
-            if (btn) btn.classList.add('active');
-            if (tabName === 'radar') {
-                setTimeout(() => { map.invalidateSize(); searchNetwork(); }, 200);
-            }
-        }
-
-        // --- FEATURE 1: TAMIL & ENGLISH VOICE ASSISTANT ---
-        function speakReply(text, lang) {
-            if ('speechSynthesis' in window) {
-                const utter = new SpeechSynthesisUtterance(text);
-                utter.lang = lang;
-                window.speechSynthesis.speak(utter);
-            }
-        }
-
-        function startVoiceAssistant() {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const toast = document.getElementById('voice-toast');
-            const feedback = document.getElementById('voice-feedback');
-            const lang = document.getElementById('voice-lang').value;
-
-            if (!SpeechRecognition) {
-                toast.classList.remove('hidden');
-                feedback.innerText = "Voice assistant requires Chrome/Edge browser.";
-                return;
-            }
-
-            const recognition = new SpeechRecognition();
-            recognition.lang = lang;
-            toast.classList.remove('hidden');
-            feedback.innerText = lang === 'ta-IN' ? "கேட்கிறது... (உதாரணம்: 'O positive blood' அல்லது 'Blood camp')" : "Listening... Say 'Find O negative', 'Blood camps', or 'Emergency SOS'";
-
-            recognition.onresult = (event) => {
-                const cmd = event.results[0][0].transcript.toLowerCase();
-                feedback.innerText = `Heard: "${cmd}"`;
-
-                // Blood Group Voice Parsing
-                const groups = ['o-', 'o+', 'a-', 'a+', 'b-', 'b+', 'ab-', 'ab+'];
-                const spokenMap = {
-                    'o negative': 'O-', 'o positive': 'O+',
-                    'a negative': 'A-', 'a positive': 'A+',
-                    'b negative': 'B-', 'b positive': 'B+',
-                    'ab negative': 'AB-', 'ab positive': 'AB+'
-                };
-
-                let matchedGroup = null;
-                for (let [phrase, code] of Object.entries(spokenMap)) {
-                    if (cmd.includes(phrase)) matchedGroup = code;
-                }
-                for (let g of groups) {
-                    if (cmd.includes(g)) matchedGroup = g.toUpperCase();
-                }
-
-                if (cmd.includes('camp') || cmd.includes('முகாம்')) {
-                    openTab('camps', document.querySelectorAll('.tab-btn')[1]);
-                    locateCampsNearMe();
-                    speakReply(lang === 'ta-IN' ? "அருகிலுள்ள ரத்ததான முகாம்கள் காட்டப்படுகின்றன" : "Showing nearby blood donation camps.", lang);
-                } else if (cmd.includes('sos') || cmd.includes('emergency') || cmd.includes('அவசரம்')) {
-                    toggleSOSModal();
-                    speakReply(lang === 'ta-IN' ? "அவசர ரத்த உதவி படிவம் திறக்கப்பட்டுள்ளது" : "Opening emergency SOS broadcast form.", lang);
-                } else if (matchedGroup) {
-                    openTab('radar', document.querySelectorAll('.tab-btn')[0]);
-                    document.getElementById('q-blood').value = matchedGroup;
-                    searchNetwork();
-                    speakReply(lang === 'ta-IN' ? `${matchedGroup} ரத்த தானம் செய்பவர்கள் தேடப்படுகிறார்கள்` : `Searching live radar for ${matchedGroup} blood donors.`, lang);
-                } else {
-                    speakReply(lang === 'ta-IN' ? "மன்னிக்கவும், மீண்டும் சொல்லவும்" : "Command received. Updating live blood radar.", lang);
-                    searchNetwork();
-                }
-            };
-
-            recognition.onerror = () => {
-                feedback.innerText = "Could not hear clearly. Please try again.";
-            };
-            recognition.start();
-        }
-
-        // --- SEARCH & MAP RADAR ---
-        async function searchNetwork() {
-            const blood = document.getElementById('q-blood').value;
-            const role = document.getElementById('q-role').value;
-            const loc = document.getElementById('q-loc').value;
-
-            const res = await fetch(`/api/search?blood=${encodeURIComponent(blood)}&role=${encodeURIComponent(role)}&location=${encodeURIComponent(loc)}`);
-            const list = await res.json();
-
-            const container = document.getElementById('results-list');
-            container.innerHTML = '';
-            markers.clearLayers();
-
-            if (!list.length) {
-                container.innerHTML = '<p class="empty-msg">No matching donors or hospitals found in this area.</p>';
-                return;
-            }
-
-            list.forEach(d => {
-                const div = document.createElement('div');
-                div.className = 'donor-row';
-                div.innerHTML = `
-                    <div class="blood-pill ${d.role === 'Blood Bank' ? 'bank' : ''}">${d.blood}</div>
-                    <div class="donor-info">
-                        <h4>${d.name} <span class="verified-mini"><i class="ri-verified-badge-fill"></i> Verified</span></h4>
-                        <p><i class="ri-map-pin-line"></i> ${d.location}</p>
-                        <span class="status-txt ${d.eligible ? 'ok' : 'wait'}">
-                            ${d.role === 'Blood Bank' ? '🏥 24/7 Hospital Blood Bank' : (d.eligible ? '● Ready to Donate' : `⏳ 90-Day Cooldown (${d.days_remaining}d left)`)}
-                        </span>
-                    </div>
-                    <a class="wa-sos" href="https://wa.me/91${d.phone}?text=URGENT%20SOS:%20Need%20${encodeURIComponent(d.blood)}%20blood%20immediately!" target="_blank" title="WhatsApp SOS">
-                        <i class="ri-whatsapp-line"></i>
-                    </a>
-                `;
-                container.appendChild(div);
-
-                const pinColor = d.role === 'Blood Bank' ? '#1d4ed8' : '#dc2626';
-                const icon = L.divIcon({
-                    className: 'pin',
-                    html: `<div style="background:${pinColor};width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 8px rgba(0,0,0,0.4);"></div>`
-                });
-                L.marker([d.lat, d.lng], { icon }).bindPopup(`<b>${d.name}</b><br>${d.role} (${d.blood})<br>${d.location}`).addTo(markers);
-            });
-        }
-
-        // --- FEATURE 4 & 9: EMERGENCY REQUEST + DUPLICATE ALERT ---
-        function toggleSOSModal() {
-            document.getElementById('sos-modal').classList.toggle('hidden');
-            document.getElementById('duplicate-alert-box').classList.add('hidden');
-        }
-
-        async function submitEmergency(force) {
-            const payload = {
-                patient_name: document.getElementById('sos-patient').value,
-                blood: document.getElementById('sos-blood').value,
-                hospital: document.getElementById('sos-hospital').value,
-                units: document.getElementById('sos-units').value,
-                phone: document.getElementById('sos-phone').value,
-                force: force
-            };
-
-            const res = await fetch('/api/emergency', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const data = await res.json();
-            if (res.status === 409 && data.duplicate) {
-                document.getElementById('dup-msg').innerText = data.message;
-                document.getElementById('duplicate-alert-box').classList.remove('hidden');
-                return;
-            }
-
-            if (res.ok) {
-                toggleSOSModal();
-                loadDashboardData();
-            }
-        }
-
-        // --- FEATURE 2: BLOOD CAMP CO-ORDINATION ---
-        function haversineKm(lat1, lon1, lat2, lon2) {
-            const R = 6371;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-            return (R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))).toFixed(1);
-        }
-
-        function locateCampsNearMe() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(pos => {
-                    userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                    loadDashboardData();
-                }, () => loadDashboardData());
-            } else {
-                loadDashboardData();
-            }
-        }
-
-        // --- FEATURE 5: INCREMENT TRANSPLANT COUNTER ---
-        async function recordTransplant() {
-            const res = await fetch('/api/transplant/increment', { method: 'POST' });
-            const data = await res.json();
-            if (data.success) {
-                document.getElementById('transplant-count').innerText = data.transplants.toLocaleString();
-            }
-        }
-
-        // --- FEATURE 6: BLOOD COMPATIBILITY MATCHER ---
-        const compatibilityChart = {
-            'O-': { receive: ['O-'], donate: ['O-', 'O+', 'A-', 'A+', 'B-', 'B+', 'AB-', 'AB+'] },
-            'O+': { receive: ['O-', 'O+'], donate: ['O+', 'A+', 'B+', 'AB+'] },
-            'A-': { receive: ['O-', 'A-'], donate: ['A-', 'A+', 'AB-', 'AB+'] },
-            'A+': { receive: ['O-', 'O+', 'A-', 'A+'], donate: ['A+', 'AB+'] },
-            'B-': { receive: ['O-', 'B-'], donate: ['B-', 'B+', 'AB-', 'AB+'] },
-            'B+': { receive: ['O-', 'O+', 'B-', 'B+'], donate: ['B+', 'AB+'] },
-            'AB-': { receive: ['O-', 'A-', 'B-', 'AB-'], donate: ['AB-', 'AB+'] },
-            'AB+': { receive: ['O-', 'O+', 'A-', 'A+', 'B-', 'B+', 'AB-', 'AB+'], donate: ['AB+'] }
-        };
-
-        function updateCompatibility() {
-            const bg = document.getElementById('compat-select').value;
-            const info = compatibilityChart[bg];
-            document.getElementById('can-receive').innerHTML = info.receive.map(x => `<span class="chip green">${x}</span>`).join('');
-            document.getElementById('can-donate').innerHTML = info.donate.map(x => `<span class="chip red">${x}</span>`).join('');
-        }
-
-        // --- FEATURE 8: PRE-DONATION HEALTH CHECKUP ---
-        function evaluateHealth() {
-            const checks = document.querySelectorAll('.health-chk');
-            const allChecked = Array.from(checks).every(c => c.checked);
-            const banner = document.getElementById('health-result');
-            if (allChecked) {
-                banner.className = 'health-banner ready';
-                banner.innerHTML = '<i class="ri-checkbox-circle-fill"></i> You are medically fit to donate blood today! Proceed to Live Radar or Nearest Camp.';
-            } else {
-                banner.className = 'health-banner pending';
-                banner.innerHTML = 'Check all 6 clinical criteria to confirm your donation readiness.';
-            }
-        }
-
-        // --- FEATURE 7: BLOOD BANK INVENTORY EXPIRY ---
-        async function addInventory(e) {
-            e.preventDefault();
-            const payload = {
-                bank_name: document.getElementById('inv-bank').value,
-                component: document.getElementById('inv-comp').value,
-                blood: document.getElementById('inv-blood').value,
-                units: document.getElementById('inv-units').value,
-                expiry_date: document.getElementById('inv-expiry').value
-            };
-            const res = await fetch('/api/inventory', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            if (res.ok) loadDashboardData();
-        }
-
-        // --- FEATURE 3: AADHAAR PHOTO VERIFICATION & PASS ---
-        function previewIDPhoto(input) {
-            if (input.files && input.files[0]) {
-                document.getElementById('file-label').innerText = input.files[0].name;
-                document.getElementById('id-preview-status').classList.remove('hidden');
-            }
-        }
-
-        function detectUserGPS() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(pos => {
-                    document.getElementById('reg-lat').value = pos.coords.latitude;
-                    document.getElementById('reg-lng').value = pos.coords.longitude;
-                    document.getElementById('gps-badge').innerText = 'GPS Locked!';
-                });
-            }
-        }
-
-        async function registerHero(e) {
-            e.preventDefault();
-            const formData = new FormData();
-            formData.append('name', document.getElementById('reg-name').value);
-            formData.append('role', document.getElementById('reg-role').value);
-            formData.append('blood', document.getElementById('reg-blood').value);
-            formData.append('location', document.getElementById('reg-loc').value);
-            formData.append('phone', document.getElementById('reg-phone').value);
-            formData.append('lat', document.getElementById('reg-lat').value);
-            formData.append('lng', document.getElementById('reg-lng').value);
-            formData.append('last_donation', document.getElementById('reg-last-date').value);
-            const fileInput = document.getElementById('reg-id-photo');
-            if (fileInput.files[0]) formData.append('id_photo', fileInput.files[0]);
-
-            const res = await fetch('/api/register', { method: 'POST', body: formData });
-            if (res.ok) {
-                document.getElementById('pass-name').innerText = document.getElementById('reg-name').value;
-                document.getElementById('pass-blood').innerText = document.getElementById('reg-blood').value;
-                document.getElementById('pass-loc').innerText = document.getElementById('reg-loc').value;
-                document.getElementById('pass-phone').innerText = '+91 ' + document.getElementById('reg-phone').value;
-                alert('ID Verified & Digital Donor Pass Generated!');
-                searchNetwork();
-            }
-        }
-
-        // --- LOAD ALL DASHBOARD FEEDS ---
-        async function loadDashboardData() {
-            const res = await fetch('/api/dashboard');
-            const data = await res.json();
-
-            document.getElementById('transplant-count').innerText = data.stats.transplants.toLocaleString();
-            document.getElementById('active-sos-count').innerText = `${data.requests.length} Active`;
-
-            // Render SOS Feed
-            const sosFeed = document.getElementById('sos-feed');
-            sosFeed.innerHTML = data.requests.length ? data.requests.map(r => `
-                <div class="sos-item">
-                    <span class="blood-pill">${r.blood}</span>
-                    <div class="sos-meta">
-                        <strong>${r.patient_name} (${r.units} Units)</strong>
-                        <span>${r.hospital} • ${r.created_at}</span>
-                    </div>
-                    <a class="wa-sos" href="https://wa.me/91${r.phone}?text=Responding%20to%20SOS%20for%20${encodeURIComponent(r.patient_name)}" target="_blank"><i class="ri-whatsapp-line"></i></a>
-                </div>
-            `).join('') : '<p class="empty-msg">No active SOS broadcasts right now.</p>';
-
-            // Render Nearby Camps Sorted by Distance
-            const campsGrid = document.getElementById('camps-grid');
-            const sortedCamps = data.camps.map(c => ({
-                ...c,
-                dist: haversineKm(userCoords.lat, userCoords.lng, c.lat, c.lng)
-            })).sort((a, b) => a.dist - b.dist);
-
-            campsGrid.innerHTML = sortedCamps.map(c => `
-                <div class="camp-card">
-                    <span class="dist-badge">${c.dist} km away</span>
-                    <h4>${c.title}</h4>
-                    <p class="org">${c.organizer}</p>
-                    <p><i class="ri-map-pin-2-line"></i> ${c.location}</p>
-                    <p><i class="ri-calendar-event-line"></i> ${c.date} | ${c.time}</p>
-                </div>
-            `).join('');
-
-            // Render Blood Bank Expiry Inventory
-            const invBody = document.getElementById('inventory-tbody');
-            invBody.innerHTML = data.inventory.map(item => `
-                <tr class="${item.urgent_expiry ? 'row-urgent' : ''}">
-                    <td><strong>${item.bank_name}</strong></td>
-                    <td>${item.component}</td>
-                    <td><span class="blood-mini">${item.blood}</span></td>
-                    <td>${item.units}</td>
-                    <td>${item.expiry_date}</td>
-                    <td>
-                        <span class="exp-badge ${item.urgent_expiry ? 'danger' : 'safe'}">
-                            ${item.urgent_expiry ? `⚠️ Expires in ${item.days_left}d (Urgent Use)` : `✓ ${item.days_left} days left`}
-                        </span>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        window.onload = () => {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('reg-last-date').max = today;
-            document.getElementById('reg-last-date').value = today;
-            document.getElementById('inv-expiry').min = today;
-            updateCompatibility();
-            searchNetwork();
-            loadDashboardData();
-        };
-    </script>
+/* boot */
+(async()=>{await loadProf();await stats();board();mine();live();setInterval(()=>{if(!document.hidden&&!S.live)refresh()},30000)})();
+</script>
 </body>
 </html>
